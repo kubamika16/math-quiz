@@ -1,7 +1,7 @@
 //Problemy na które jeszcze nie znalazłem rozwiązania:
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
 
-// 1 sesja w pociągu (14/05/2022)
+// 2 sesje w pociągu (ale pozostało 5 minut) (14/05/2022)
 
 const Alexa = require("ask-sdk-core");
 const functions = require("./helpers/functions");
