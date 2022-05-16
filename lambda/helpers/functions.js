@@ -1,5 +1,3 @@
-// Version:5 ma wszystkie odpowiedzi. To oznacza że jeśli ustawimy w ask-states 5 wersję i zmienimy coś w kodzie to nic się w rezultacie nie zmieni
-
 const equationsEasy = require("./equationsEasy");
 const equationsMedium = require("./equationsMedium");
 const equationsHard = require("./equationsHard");
@@ -17,6 +15,7 @@ const messages = {
     "Dzien Dobry! You opened a math quiz app. To start, choose a level: easy, medium, hard, or extreme",
     "Hello! To start the game, pick the level: easy, medium, hard, extreme.",
     // "Holla Senior! Which level would you like? Easy, medium, hard?",
+    // "Alright. This is a developement version of the skill.",
   ],
   levelNotUnderstood: [
     "Sorry, could you say again which level you would like to choose?",
