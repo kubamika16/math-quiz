@@ -1,5 +1,3 @@
-// Version:5 ma wszystkie odpowiedzi. To oznacza że jeśli ustawimy w ask-states 5 wersję i zmienimy coś w kodzie to nic się w rezultacie nie zmieni
-
 const equationsEasy = require("./equationsEasy");
 const equationsMedium = require("./equationsMedium");
 const equationsHard = require("./equationsHard");

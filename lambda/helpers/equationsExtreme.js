@@ -9,15 +9,7 @@ const numbers = {
   firstNumber: undefined,
   secondNumber: undefined,
   secondNumberTimesDivided: randomFromArray([
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
+    11, 12, 13, 14, 15, 16, 17, 18, 19,
   ]),
 };
 
@@ -69,7 +61,7 @@ const newQuestion = function () {
       (numbers.secondNumber + "").indexOf("0") > -1
     )
   ) {
-    console.log((numbers.firstNumber + "").indexOf("0") > -1);
+    // console.log((numbers.firstNumber + "").indexOf("0") > -1);
     equations.push({
       userResult: userResult.question,
       questionInWords: userResult.questionInWords,
@@ -88,7 +80,7 @@ const newQuestion = function () {
       !decimalNumber(userResult.result) &&
       !equations.some((el) => el === userResult.question)
     ) {
-      console.log((numbers.firstNumber + "").indexOf("0") > -1);
+      // console.log((numbers.firstNumber + "").indexOf("0") > -1);
       equations.push({
         userResult: userResult.question,
         questionInWords: userResult.questionInWords,

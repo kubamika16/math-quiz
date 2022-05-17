@@ -17,6 +17,8 @@ let additionalTime;
 let speakOutput = "";
 let repromptText = "";
 
+let userID;
+
 const reset = function () {
   points = 0;
   count = 4;
@@ -29,6 +31,8 @@ const LaunchRequestHandler = {
     );
   },
   handle(handlerInput) {
+    userID = handlerInput.requestEnvelope.context.System.user.userId;
+    console.log("User ID:", userID, "[from file index.js]");
     // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
     speakOutput = functions.randomFromArray(functions.messages.welcome);
     functions.newEquations();
@@ -123,7 +127,6 @@ const ResultIntentHandler = {
     );
   },
   handle(handlerInput) {
-    console.log("Level:", level);
     //Jeśli poziom nie został wybrany, zwrócona zostanie od razu odpowiedź zeby wybrac level
     if (level === undefined) {
       speakOutput = "Choose the level first: easy, medium, hard or extreme.";
@@ -159,6 +162,7 @@ const ResultIntentHandler = {
           points
         )} points. `;
         repromptText = "";
+        console.log(`Points: ${points}`);
       }
     } else {
       speakOutput = `${
@@ -180,6 +184,7 @@ const ResultIntentHandler = {
           points
         )} points. `;
         repromptText = "";
+        console.log(`Points: ${points}`);
       }
     }
 
@@ -228,6 +233,7 @@ const dontKnowIntentHandler = {
         points
       )} points. `;
       repromptText = "";
+      console.log(`Points: ${points}`);
     }
 
     return handlerInput.responseBuilder

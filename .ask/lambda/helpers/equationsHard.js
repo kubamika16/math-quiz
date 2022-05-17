@@ -32,7 +32,7 @@ const equations = [];
 const creatingResponse = function () {
   numbers.firstNumber = randomFromArray(numbers.firstNumberArray);
   numbers.secondNumber = randomFromArray(numbers.secondNumberArray);
-  console.log((numbers.firstNumber + "").indexOf("0") > -1);
+  // console.log((numbers.firstNumber + "").indexOf("0") > -1);
 
   operands.index = operands.types.indexOf(randomFromArray(operands.types));
   operands.choosen = operands.types[operands.index];
@@ -60,7 +60,7 @@ const newQuestion = function () {
       (numbers.secondNumber + "").indexOf("0") > -1
     )
   ) {
-    console.log((numbers.firstNumber + "").indexOf("0") > -1);
+    // console.log((numbers.firstNumber + "").indexOf("0") > -1);
     equations.push({
       userResult: userResult.question,
       questionInWords: userResult.questionInWords,
@@ -79,7 +79,7 @@ const newQuestion = function () {
       !decimalNumber(userResult.result) &&
       !equations.some((el) => el === userResult.question)
     ) {
-      console.log((numbers.firstNumber + "").indexOf("0") > -1);
+      // console.log((numbers.firstNumber + "").indexOf("0") > -1);
       equations.push({
         userResult: userResult.question,
         questionInWords: userResult.questionInWords,
