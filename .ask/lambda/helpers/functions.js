@@ -14,7 +14,7 @@ const messages = {
     "How are you? If you want to play this math quiz game, pick a level: easy, medium, hard, or extreme?",
     "Dzien Dobry! You opened a math quiz app. To start, choose a level: easy, medium, hard, or extreme",
     "Hello! To start the game, pick the level: easy, medium, hard, extreme.",
-    // "Holla Senior! Which level would you like? Easy, medium, hard?",
+    // "Holla Senior! Which level would you like? Easy, medium, hard, or extreme?",
     // "Alright. This is a developement version of the skill.",
   ],
   levelNotUnderstood: [
