@@ -1,5 +1,3 @@
-// TEST!!! Na telefonie powinny być wszystkie teksty oprócz ostatniego
-
 const equationsEasy = require("./equationsEasy");
 const equationsMedium = require("./equationsMedium");
 const equationsHard = require("./equationsHard");

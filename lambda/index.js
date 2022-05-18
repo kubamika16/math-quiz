@@ -1,6 +1,14 @@
 //Problemy na które jeszcze nie znalazłem rozwiązania:
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
 
+// BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+// Run Streak do stworzenia
+
+// Jeśli znajduje się dzisiejsza data i nie ma wczorajszej daty, ustaw i zwróć 'runStreak' na 1 (Zwróć liczbę danych w kolumnie 'runStreaks' przy rozpoczęciu programu)
+// Jeśli nie ma wczorajszej daty i nie ma dzisiejszej daty, ustaw 'runStreaks' na 0
+// Jeśli count===0 (wszystkie pytania zostały przedstawione), oraz jeśli dzisiejszej daty nie ma w kolumnie 'runStreaks'
+// Dodaj datę dzisiejszą do kolumny 'runStreaks'
+
 const Alexa = require("ask-sdk-core");
 const functions = require("./helpers/functions");
 const equationsEasy = require("./helpers/equationsEasy");
