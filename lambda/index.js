@@ -8,6 +8,11 @@ const equationsMedium = require("./helpers/equationsMedium");
 const equationsHard = require("./helpers/equationsHard");
 const equationsExtreme = require("./helpers/equationsExtreme");
 
+// Zmienne pozwalające na zapisanie danych w bazie
+const dbHelper = require("./helpers/dbHelper.js");
+const Adapter = require("ask-sdk-dynamodb-persistence-adapter");
+const dynamoDBTableName = "math-quiz-db";
+
 let level;
 let points = 0;
 let count = 4;
@@ -17,7 +22,8 @@ let additionalTime;
 let speakOutput = "";
 let repromptText = "";
 
-let userID;
+let userID; //Dany uzytkownik uzywający aplikacji
+let data; //Dane pobierane z bazy danych
 
 const reset = function () {
   points = 0;
@@ -30,13 +36,33 @@ const LaunchRequestHandler = {
       Alexa.getRequestType(handlerInput.requestEnvelope) === "LaunchRequest"
     );
   },
-  handle(handlerInput) {
+  async handle(handlerInput) {
     userID = handlerInput.requestEnvelope.context.System.user.userId;
     console.log("User ID:", userID, "[from file index.js]");
-    // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
-    speakOutput = functions.randomFromArray(functions.messages.welcome);
-    functions.newEquations();
-    level = undefined;
+
+    try {
+      // Pobranie danych z bazy w oparciu o użytkownika
+      data = await dbHelper.getData(userID);
+
+      //Jeśli nie ma uzytkownika w bazie to tworzy się nowy
+      if (data === undefined) {
+        // Dodanie nowego użytkownika do bazy danych
+        await dbHelper.addUser(userID);
+        data = await dbHelper.getData(userID);
+        console.log(data);
+      }
+
+      level = undefined;
+      functions.newEquations();
+      // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
+      speakOutput = functions.randomFromArray(functions.messages.welcome);
+    } catch (error) {
+      console.log(`error message: ${error.message}`);
+      console.log(`error stack: ${error.stack}`);
+      console.log(`error status code: ${error.statusCode}`);
+      console.log(`error response: ${error.response}`);
+      speakOutput = `A launch request error occured.`;
+    }
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -368,4 +394,9 @@ exports.handler = Alexa.SkillBuilders.custom()
     IntentReflectorHandler // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
   )
   .addErrorHandlers(ErrorHandler)
+  .withPersistenceAdapter(
+    new Adapter.DynamoDbPersistenceAdapter({
+      tableName: dynamoDBTableName,
+    })
+  )
   .lambda();
