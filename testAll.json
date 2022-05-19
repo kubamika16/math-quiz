@@ -1,0 +1,16 @@
+{
+  "skillId": "amzn1.ask.skill.03171b24-1347-4d73-ae26-7b05a1c79180",
+  "locale": "en-US",
+  "type": "text",
+  "userInput": [
+    "open math quiz",
+    "medium",
+    "20",
+    "20",
+    "20",
+    "20",
+    "20",
+    "stop",
+    ".quit"
+  ]
+}

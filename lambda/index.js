@@ -1,8 +1,11 @@
+// 3 sesje w pociągu (19/05/2022)
+
 //Problemy na które jeszcze nie znalazłem rozwiązania:
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
 
 // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
 // Run Streak do stworzenia
+// A dokładnie wypełnienie go warunkami zapisanymi w pliku 'Testy', czyli to co jest napisane niżej
 
 // Jeśli znajduje się dzisiejsza data i nie ma wczorajszej daty, ustaw i zwróć 'runStreak' na 1 (Zwróć liczbę danych w kolumnie 'runStreaks' przy rozpoczęciu programu)
 // Jeśli nie ma wczorajszej daty i nie ma dzisiejszej daty, ustaw 'runStreaks' na 0
@@ -33,10 +36,59 @@ let repromptText = "";
 let userID; //Dany uzytkownik uzywający aplikacji
 let data; //Dane pobierane z bazy danych
 
+// Dane o użykowniku zapisane w obiekcie
+let currentUser = {};
+
+// Obiekt daty
+const callendarDate = {
+  today: functions.dateFunction(),
+};
+
 const reset = function () {
   points = 0;
   count = 4;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FUNKCJE LOKALNE
+const numberOfQuestions = async function () {
+  if (count >= 0) {
+    currentQuestion = allQuestions[count];
+    speakOutput += `${functions.randomFromArray(
+      functions.messages.nextQuestion
+    )} ${currentQuestion.questionInWords}?`;
+    speakOutput += ` ${additionalTime} `;
+    repromptText = functions.audio.repromptClock;
+    // Przypadek, gdy liczba pytań jest równa 0
+  } else {
+    speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
+      level,
+      points
+    )} points. `;
+    repromptText = "";
+    console.log(`Points: ${points}`);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Dodawanie 'runStreak'
+
+    // Pobranie danych z 'runStreak' o danym ID użytkownika
+    const data = await dbHelper.getData(userID);
+    // Zapisanie danych z 'runStreak' w tablicy
+    const dates = data.runStreak;
+    // Warunek który dodaje dzisiejszą datę, jeśli nie znajduje się ona w tablicy 'dates'
+    if (!dates.includes(callendarDate.today))
+      dates.push(functions.dateFunction());
+
+    // Dodać dzisiejszą datę do tablicy, jeśli jej nie ma
+
+    // Dodanie do bazy tablicy i ID użytkownika w której odpowiedziałem na 5 pytań,
+    await dbHelper.addUser(userID, dates);
+  }
+};
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -51,14 +103,21 @@ const LaunchRequestHandler = {
     try {
       // Pobranie danych z bazy w oparciu o użytkownika
       data = await dbHelper.getData(userID);
+      console.log(data);
 
       //Jeśli nie ma uzytkownika w bazie to tworzy się nowy
       if (data === undefined) {
         // Dodanie nowego użytkownika do bazy danych
-        await dbHelper.addUser(userID);
+        await dbHelper.addUser(userID, []);
         data = await dbHelper.getData(userID);
-        console.log(data);
+        console.log("User Data:", data);
+        // A jeśli istnieje już użytkownik w bazie...
+      } else {
+        console.log("User Data:", data);
       }
+
+      // Dodanie do bazy dzisiejszej daty w której odpowiedziałem na 5 pytań
+      // await dbHelper.updateStreak(userID, functions.dateFunction());
 
       level = undefined;
       functions.newEquations();
@@ -177,27 +236,16 @@ const ResultIntentHandler = {
     const userResult =
       handlerInput.requestEnvelope.request.intent.slots.result.value;
 
+    // Gdy odpowiedź użytkownika się zgadza
     if (Number(userResult) === currentQuestion.result) {
       speakOutput += ` ${functions.audio.correctAnswer} Correct! That will be ${currentQuestion.result}. `;
       console.log(currentQuestion);
       console.log("Count:", count);
       points++;
       count--;
-      if (count >= 0) {
-        currentQuestion = allQuestions[count];
-        speakOutput += `${functions.randomFromArray(
-          functions.messages.nextQuestion
-        )} ${currentQuestion.questionInWords}? `;
-        speakOutput += ` ${additionalTime} `;
-        repromptText = functions.audio.repromptClock;
-      } else {
-        speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
-          level,
-          points
-        )} points. `;
-        repromptText = "";
-        console.log(`Points: ${points}`);
-      }
+      // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
+      numberOfQuestions();
+      // Gdy odpowiedź użytkownika się nie zgadza
     } else {
       speakOutput = `${
         functions.audio.incorrectAnswer
@@ -205,21 +253,8 @@ const ResultIntentHandler = {
         functions.messages.result
       )} ${currentQuestion.result}. `;
       count--;
-      if (count >= 0) {
-        currentQuestion = allQuestions[count];
-        speakOutput += `${functions.randomFromArray(
-          functions.messages.nextQuestion
-        )} ${currentQuestion.questionInWords}?`;
-        speakOutput += ` ${additionalTime} `;
-        repromptText = functions.audio.repromptClock;
-      } else {
-        speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
-          level,
-          points
-        )} points. `;
-        repromptText = "";
-        console.log(`Points: ${points}`);
-      }
+      // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
+      numberOfQuestions();
     }
 
     return handlerInput.responseBuilder
@@ -254,21 +289,7 @@ const dontKnowIntentHandler = {
       functions.messages.result
     )} ${currentQuestion.result}. `;
     count--;
-    if (count >= 0) {
-      currentQuestion = allQuestions[count];
-      speakOutput += `${functions.randomFromArray(
-        functions.messages.nextQuestion
-      )} ${currentQuestion.questionInWords}?`;
-      speakOutput += ` ${additionalTime} `;
-      repromptText = functions.audio.repromptClock;
-    } else {
-      speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
-        level,
-        points
-      )} points. `;
-      repromptText = "";
-      console.log(`Points: ${points}`);
-    }
+    numberOfQuestions();
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -325,7 +346,8 @@ const CancelAndStopIntentHandler = {
   },
   handle(handlerInput) {
     const speakOutput =
-      "Hope you had fun! If you can, leave a review. Good or bad, it should be honest. Honest answers will make this game much better. Goodbye!";
+      // "Hope you had fun! If you can, leave a review. Good or bad, it should be honest. Honest answers will make this game much better. Goodbye!";
+      "Thanks!";
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   },
 };

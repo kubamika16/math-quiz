@@ -8,14 +8,14 @@ const randomFromArray = (array) =>
 
 const messages = {
   welcome: [
-    "Hi! Welcome in the math quiz! To begin, say the level you want to start: easy, medium, hard, or extreme",
-    "Hello! This is a math quiz game. I will ask you five questions, and you have some time to give me correct answer. Now, choose your level: easy, medium, hard, or extreme?",
-    "Holla! Happy to see you! This is a math quiz game. To start, pick a level: easy, medium, hard, or extreme?",
-    "How are you? If you want to play this math quiz game, pick a level: easy, medium, hard, or extreme?",
-    "Dzien Dobry! You opened a math quiz app. To start, choose a level: easy, medium, hard, or extreme",
-    "Hello! To start the game, pick the level: easy, medium, hard, extreme.",
-    "Holla Senior! Which level would you like? Easy, medium, hard, or extreme?",
-    // "Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level? ",
+    // "Hi! Welcome in the math quiz! To begin, say the level you want to start: easy, medium, hard, or extreme",
+    // "Hello! This is a math quiz game. I will ask you five questions, and you have some time to give me correct answer. Now, choose your level: easy, medium, hard, or extreme?",
+    // "Holla! Happy to see you! This is a math quiz game. To start, pick a level: easy, medium, hard, or extreme?",
+    // "How are you? If you want to play this math quiz game, pick a level: easy, medium, hard, or extreme?",
+    // "Dzien Dobry! You opened a math quiz app. To start, choose a level: easy, medium, hard, or extreme",
+    // "Hello! To start the game, pick the level: easy, medium, hard, extreme.",
+    // "Holla Senior! Which level would you like? Easy, medium, hard, or extreme?",
+    "Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level? ",
   ],
   levelNotUnderstood: [
     "Sorry, could you say again which level you would like to choose?",
@@ -23,7 +23,7 @@ const messages = {
     "Hmm, I'm not sure. Level easy, medium, hard, or extreme?",
     "Sorry, I have small problem with hearing. Could you tell me a level once again?",
     "I am really sorry, but I didn't get that. Say the level again.",
-    "I am still young assistant, and still learning to listen. Could you tell me once again what level would you like to choose?",
+    "I am still young assistant learning to listen. Could you tell me once again what level would you like to choose?",
   ],
   choosenLevel: [
     "Alright! Let's begin with level",
@@ -89,10 +89,31 @@ const newEquations = function () {
   equationsExtreme.createQuestions();
 };
 
+// Dzisiejsza data (argumentem jest ilość dni które chcemy odjąć od dnia dzisiejszego)
+const date = {};
+const dateFunction = (minusDays = 0) => {
+  const newDate = new Date();
+  // miesiąc (od zera do 11 ale dodałem 1)
+  date.month = newDate.getMonth() + 1;
+  // Dzień (od 1 do 31)
+  date.day = newDate.getDate();
+  date.year = newDate.getFullYear();
+  return `${date.day - minusDays}/${date.month}/${date.year}`;
+
+  // // TESTY
+  // // miesiąc (od zera do 11 ale dodałem 1)
+  // date.month = 5;
+  // // Dzień (od 1 do 31)
+  // date.day = 18;
+  // date.year = 2022;
+  // return `${date.day - minusDays}/${date.month}/${date.year}`;
+};
+
 module.exports = {
   messages,
   randomFromArray,
   newEquations,
   addingPoints,
   audio,
+  dateFunction,
 };
