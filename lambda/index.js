@@ -1,9 +1,6 @@
 //Problemy na które jeszcze nie znalazłem rozwiązania:
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
 
-// BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-// Całkiem spoczko działa 'runStreak'. Przetestować i naprawić błędy
-
 const Alexa = require("ask-sdk-core");
 const functions = require("./helpers/functions");
 const equationsEasy = require("./helpers/equationsEasy");
@@ -153,11 +150,6 @@ const LaunchRequestHandler = {
       );
 
       // Końcowa wypowiedź Alexy na powitanie
-      // speakOutput = `${functions.randomFromArray(
-      //   functions.messages.welcome
-      // )} ${functions.runStreakOutput(currentUser.runStreak)}`;
-      // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-      // Sprawdzić czy działa, jeśli tak to dokończyć
       speakOutput = `${functions.randomFromArray([
         `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
         `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
