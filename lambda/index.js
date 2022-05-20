@@ -51,12 +51,13 @@ const numberOfQuestions = async function () {
     repromptText = functions.audio.repromptClock;
     // Przypadek, gdy liczba pytań jest równa 0
   } else {
-    speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
-      currentUser.level,
-      points
-    )} points. `;
+    speakOutput += `Alright! You correctly answered ${points} out of 5 questions!`;
+    // earning ${functions.addingPoints(
+    //   currentUser.level,
+    //   points
+    // )} points. `;
     repromptText = "";
-    console.log(`Points: ${points}`);
+    // console.log(`Points: ${points}`);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Dodawanie 'runStreak'
