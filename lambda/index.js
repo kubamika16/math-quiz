@@ -13,7 +13,6 @@ const dbHelper = require("./helpers/dbHelper.js");
 const Adapter = require("ask-sdk-dynamodb-persistence-adapter");
 const dynamoDBTableName = "math-quiz-db";
 
-let level;
 let points = 0;
 let count = 4;
 let allQuestions;
@@ -29,6 +28,7 @@ let currentUser = {
   currentRunStreak: 0,
   currentRunStreakText: null,
   userID: null,
+  level: undefined,
 };
 
 // Obiekt daty
@@ -40,6 +40,7 @@ const callendarDate = {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUNKCJE LOKALNE
+
 const numberOfQuestions = async function () {
   if (count >= 0) {
     currentQuestion = allQuestions[count];
@@ -51,7 +52,7 @@ const numberOfQuestions = async function () {
     // Przypadek, gdy liczba pytań jest równa 0
   } else {
     speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
-      level,
+      currentUser.level,
       points
     )} points. `;
     repromptText = "";
@@ -110,7 +111,7 @@ const LaunchRequestHandler = {
       // Dodanie do bazy dzisiejszej daty w której odpowiedziałem na 5 pytań
       // await dbHelper.updateStreak(currentUser.userID, functions.dateFunction());
 
-      level = undefined;
+      currentUser.level = undefined;
       functions.newEquations();
       // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
 
@@ -182,31 +183,32 @@ const GameLevelIntentHandler = {
   },
   handle(handlerInput) {
     speakOutput = "";
-    level = handlerInput.requestEnvelope.request.intent.slots.level.value;
+    currentUser.level =
+      handlerInput.requestEnvelope.request.intent.slots.level.value;
     speakOutput += `${functions.randomFromArray(
       functions.messages.choosenLevel
-    )} ${level}. `;
+    )} ${currentUser.level}. `;
 
-    if (level === "medium") {
+    if (currentUser.level === "medium") {
       speakOutput += `Because of that level, you will have extra 3 seconds. Alright! `;
     }
-    if (level === "hard") {
+    if (currentUser.level === "hard") {
       speakOutput += `Because of that level, you will have extra 6 seconds. Alright! `;
     }
-    if (level === "extreme") {
+    if (currentUser.level === "extreme") {
       speakOutput += `Because of that level, you will have extra 10 seconds. Alright! `;
     }
 
     reset();
     functions.newEquations();
 
-    if (level === "easy") {
+    if (currentUser.level === "easy") {
       allQuestions = equationsEasy.equations;
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
 
       additionalTime = `${functions.audio.additionalTime(0)}`;
-    } else if (level === "medium") {
+    } else if (currentUser.level === "medium") {
       allQuestions = equationsMedium.createQuestions();
       console.log(allQuestions);
       currentQuestion = allQuestions[count];
@@ -216,7 +218,7 @@ const GameLevelIntentHandler = {
         functions.audio.answerTime
       }`;
       speakOutput += ` ${additionalTime}`;
-    } else if (level === "hard") {
+    } else if (currentUser.level === "hard") {
       allQuestions = equationsHard.equations;
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
@@ -225,7 +227,7 @@ const GameLevelIntentHandler = {
         functions.audio.answerTime
       }`;
       speakOutput += ` ${additionalTime}`;
-    } else if (level === "extreme") {
+    } else if (currentUser.level === "extreme") {
       allQuestions = equationsExtreme.equations;
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
@@ -239,7 +241,7 @@ const GameLevelIntentHandler = {
         functions.messages.levelNotUnderstood
       );
     }
-    console.log("Level:", level);
+    console.log("Level:", currentUser.level);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -257,7 +259,7 @@ const ResultIntentHandler = {
   },
   handle(handlerInput) {
     //Jeśli poziom nie został wybrany, zwrócona zostanie od razu odpowiedź zeby wybrac level
-    if (level === undefined) {
+    if (currentUser.level === undefined) {
       speakOutput = "Choose the level first: easy, medium, hard or extreme.";
 
       return handlerInput.responseBuilder
@@ -309,7 +311,7 @@ const dontKnowIntentHandler = {
   },
   handle(handlerInput) {
     //Jeśli poziom nie został wybrany, zwrócona zostanie od razu odpowiedź zeby wybrac level
-    if (level === undefined) {
+    if (currentUser.level === undefined) {
       speakOutput = "Choose the level first: easy, medium or hard.";
 
       return handlerInput.responseBuilder
@@ -397,7 +399,7 @@ const SessionEndedRequestHandler = {
   handle(handlerInput) {
     // Any cleanup logic goes here.
     reset();
-    level = undefined;
+    currentUser.level = undefined;
     // functions.newEquations();
     return handlerInput.responseBuilder.getResponse();
   },
