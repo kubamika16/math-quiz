@@ -1,180 +1,203 @@
 {
   "interactionModel": {
-    "languageModel": {
-      "invocationName": "math quiz",
-      "intents": [
-        {
-          "name": "AMAZON.CancelIntent",
-          "samples": []
-        },
-        {
-          "name": "AMAZON.HelpIntent",
-          "samples": [
-            "how to play",
-            "what is all that about",
-            "tell me something about this game",
-            "what is that about"
-          ]
-        },
-        {
-          "name": "AMAZON.StopIntent",
-          "samples": [
-            "thanks alexa",
-            "enough for me",
-            "I'm good",
-            "thanks",
-            "enough",
-            "stop",
-            "cool"
-          ]
-        },
-        {
-          "name": "AMAZON.NavigateHomeIntent",
-          "samples": []
-        },
-        {
-          "name": "GameLevelIntent",
-          "slots": [
-            {
-              "name": "level",
-              "type": "gameLevel"
-            }
+      "languageModel": {
+          "invocationName": "math quiz",
+          "intents": [
+              {
+                  "name": "AMAZON.CancelIntent",
+                  "samples": []
+              },
+              {
+                  "name": "AMAZON.HelpIntent",
+                  "samples": [
+                      "how to play",
+                      "what is all that about",
+                      "tell me something about this game",
+                      "what is that about"
+                  ]
+              },
+              {
+                  "name": "AMAZON.StopIntent",
+                  "samples": [
+                      "thanks alexa",
+                      "enough for me",
+                      "I'm good",
+                      "thanks",
+                      "enough",
+                      "stop",
+                      "cool"
+                  ]
+              },
+              {
+                  "name": "AMAZON.NavigateHomeIntent",
+                  "samples": []
+              },
+              {
+                  "name": "GameLevelIntent",
+                  "slots": [
+                      {
+                          "name": "level",
+                          "type": "gameLevel"
+                      }
+                  ],
+                  "samples": [
+                      "switch to {level}",
+                      "now play {level}",
+                      "I want to play {level} now",
+                      "change to {level}",
+                      "im going to make it {level} for you",
+                      "i think ill be able to make it {level}",
+                      "ill be able to choose {level}",
+                      "im going to be {level}",
+                      "can you {level} up the level",
+                      "is it {level}",
+                      "i can {level} easily",
+                      "i think its going to be {level}",
+                      "i think ill take it {level}",
+                      "set difficulty to {level}",
+                      "ill pick a {level} level",
+                      "ill choose an {level} level",
+                      "i think i will {level} level",
+                      "i will get {level} level",
+                      "{level} please",
+                      "{level} level please",
+                      "I think I will get {level} level",
+                      "I will choose {level} level",
+                      "{level}"
+                  ]
+              },
+              {
+                  "name": "ResultIntent",
+                  "slots": [
+                      {
+                          "name": "result",
+                          "type": "AMAZON.NUMBER"
+                      }
+                  ],
+                  "samples": [
+                      "{result} is my answer",
+                      "i think it's {result}",
+                      "it is {result}",
+                      "result is {result}",
+                      "i think the result is {result}",
+                      "i am guessing that result will be {result}",
+                      "{result} ",
+                      "i think {result}",
+                      "that will be {result}",
+                      "the result is {result}"
+                  ]
+              },
+              {
+                  "name": "dontKnowIntent",
+                  "slots": [],
+                  "samples": [
+                      "next question",
+                      "next",
+                      "what is the answer",
+                      "answer",
+                      "then tell me the answer",
+                      "but i dont know this",
+                      "can you give me the answer",
+                      "show the answer",
+                      "skip",
+                      "will you show me your answers",
+                      "can you tell me the answer",
+                      "give the answer",
+                      "get the answer",
+                      "i do not know",
+                      "can you show me the answer",
+                      "i don't know that one",
+                      "im not sure",
+                      "I have no clue",
+                      "too hard",
+                      "No idea",
+                      "tell me the answer",
+                      "I don't know",
+                      "I'm not sure"
+                  ]
+              },
+              {
+                  "name": "RepatQuestionIntent",
+                  "slots": [],
+                  "samples": [
+                      "what are you saying",
+                      "what are you talking about",
+                      "can you say that",
+                      "what did you just say",
+                      "what did you just say to us again",
+                      "can you repeat what you just said",
+                      "i didn't hear anything about it",
+                      "what was that",
+                      "what do you say",
+                      "what were you talking about",
+                      "could you repeat what you said before",
+                      "what were you saying",
+                      "repeat",
+                      "i didnt hear anything about it",
+                      "can you repeat what you said before",
+                      "can you say that again",
+                      "what",
+                      "could you repeat that",
+                      "what did you say",
+                      "i didn't hear that",
+                      "could you repeat"
+                  ]
+              },
+              {
+                  "name": "YesIntent",
+                  "slots": [],
+                  "samples": [
+                      "go",
+                      "yeah i want to",
+                      "good",
+                      "but why not",
+                      "ok",
+                      "i want it",
+                      "yes i did",
+                      "go for it",
+                      "okay",
+                      "i do",
+                      "obviously",
+                      "yes i want that",
+                      "of course",
+                      "yes",
+                      "sounds good",
+                      "why not",
+                      "sure"
+                  ]
+              }
           ],
-          "samples": [
-            "switch to {level}",
-            "now play {level}",
-            "I want to play {level} now",
-            "change to {level}",
-            "im going to make it {level} for you",
-            "i think ill be able to make it {level}",
-            "ill be able to choose {level}",
-            "im going to be {level}",
-            "can you {level} up the level",
-            "is it {level}",
-            "i can {level} easily",
-            "i think its going to be {level}",
-            "i think ill take it {level}",
-            "set difficulty to {level}",
-            "ill pick a {level} level",
-            "ill choose an {level} level",
-            "i think i will {level} level",
-            "i will get {level} level",
-            "{level} please",
-            "{level} level please",
-            "I think I will get {level} level",
-            "I will choose {level} level",
-            "{level}"
-          ]
-        },
-        {
-          "name": "ResultIntent",
-          "slots": [
-            {
-              "name": "result",
-              "type": "AMAZON.NUMBER"
-            }
-          ],
-          "samples": [
-            "{result} is my answer",
-            "i think it's {result}",
-            "it is {result}",
-            "result is {result}",
-            "i think the result is {result}",
-            "i am guessing that result will be {result}",
-            "{result} ",
-            "i think {result}",
-            "that will be {result}",
-            "the result is {result}"
-          ]
-        },
-        {
-          "name": "dontKnowIntent",
-          "slots": [],
-          "samples": [
-            "next question",
-            "next",
-            "what is the answer",
-            "answer",
-            "then tell me the answer",
-            "but i dont know this",
-            "can you give me the answer",
-            "show the answer",
-            "skip",
-            "will you show me your answers",
-            "can you tell me the answer",
-            "give the answer",
-            "get the answer",
-            "i do not know",
-            "can you show me the answer",
-            "i don't know that one",
-            "im not sure",
-            "I have no clue",
-            "too hard",
-            "No idea",
-            "tell me the answer",
-            "I don't know",
-            "I'm not sure"
-          ]
-        },
-        {
-          "name": "RepatQuestionIntent",
-          "slots": [],
-          "samples": [
-            "what are you saying",
-            "what are you talking about",
-            "can you say that",
-            "what did you just say",
-            "what did you just say to us again",
-            "can you repeat what you just said",
-            "i didn't hear anything about it",
-            "what was that",
-            "what do you say",
-            "what were you talking about",
-            "could you repeat what you said before",
-            "what were you saying",
-            "repeat",
-            "i didnt hear anything about it",
-            "can you repeat what you said before",
-            "can you say that again",
-            "what",
-            "could you repeat that",
-            "what did you say",
-            "i didn't hear that",
-            "could you repeat"
-          ]
-        }
-      ],
-      "types": [
-        {
-          "name": "gameLevel",
-          "values": [
-            {
-              "id": "4",
-              "name": {
-                "value": "extreme"
+          "types": [
+              {
+                  "name": "gameLevel",
+                  "values": [
+                      {
+                          "id": "4",
+                          "name": {
+                              "value": "extreme"
+                          }
+                      },
+                      {
+                          "id": "3",
+                          "name": {
+                              "value": "hard"
+                          }
+                      },
+                      {
+                          "id": "2",
+                          "name": {
+                              "value": "medium"
+                          }
+                      },
+                      {
+                          "id": "1",
+                          "name": {
+                              "value": "easy"
+                          }
+                      }
+                  ]
               }
-            },
-            {
-              "id": "3",
-              "name": {
-                "value": "hard"
-              }
-            },
-            {
-              "id": "2",
-              "name": {
-                "value": "medium"
-              }
-            },
-            {
-              "id": "1",
-              "name": {
-                "value": "easy"
-              }
-            }
           ]
-        }
-      ]
-    }
+      }
   }
 }
