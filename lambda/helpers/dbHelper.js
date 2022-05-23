@@ -1,5 +1,4 @@
 let AWS = require("aws-sdk");
-const functions = require("./functions");
 
 //Tabela w bazie danych gdzie przechowujemy rekordy
 const tableName = "math-quiz-db";
@@ -7,14 +6,14 @@ const tableName = "math-quiz-db";
 let dbHelper = function () {};
 let docClient = new AWS.DynamoDB.DocumentClient();
 
-// Funkcja pozwalająca na dodanie użytkownika do bazy, w oparciu o jego ID i o dzisiejszej dacie
-dbHelper.prototype.addUser = (userID, dates) => {
+// Funkcja pozwalająca na dodanie użytkownika, w oparciu o jego ID
+dbHelper.prototype.addUser = (userID) => {
   return new Promise((resolve, reject) => {
     const params = {
       TableName: tableName,
       Item: {
         userId: userID,
-        runStreak: dates,
+        runStreak: "0",
       },
     };
     docClient.put(params, (err, data) => {
@@ -50,7 +49,7 @@ dbHelper.prototype.getData = (userID) => {
   });
 };
 
-// Aktualizacja 'runStreak (d/m/yyyy)' poszczególnego użytkownika w oparciu o jego ID
+// Aktualizacja poszczególnego użytkownika w oparciu o jego ID
 dbHelper.prototype.updateStreak = (userID, runStreak) => {
   return new Promise((resolve, reject) => {
     const params = {
