@@ -1,14 +1,6 @@
 //Problemy na które jeszcze nie znalazłem rozwiązania:
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
 
-// BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-// Run Streak do stworzenia
-
-// Jeśli znajduje się dzisiejsza data i nie ma wczorajszej daty, ustaw i zwróć 'runStreak' na 1 (Zwróć liczbę danych w kolumnie 'runStreaks' przy rozpoczęciu programu)
-// Jeśli nie ma wczorajszej daty i nie ma dzisiejszej daty, ustaw 'runStreaks' na 0
-// Jeśli count===0 (wszystkie pytania zostały przedstawione), oraz jeśli dzisiejszej daty nie ma w kolumnie 'runStreaks'
-// Dodaj datę dzisiejszą do kolumny 'runStreaks'
-
 const Alexa = require("ask-sdk-core");
 const functions = require("./helpers/functions");
 const equationsEasy = require("./helpers/equationsEasy");
@@ -21,7 +13,6 @@ const dbHelper = require("./helpers/dbHelper.js");
 const Adapter = require("ask-sdk-dynamodb-persistence-adapter");
 const dynamoDBTableName = "math-quiz-db";
 
-let level;
 let points = 0;
 let count = 4;
 let allQuestions;
@@ -30,13 +21,66 @@ let additionalTime;
 let speakOutput = "";
 let repromptText = "";
 
-let userID; //Dany uzytkownik uzywający aplikacji
 let data; //Dane pobierane z bazy danych
+
+// Dane o użykowniku zapisane w obiekcie
+let currentUser = {
+  currentRunStreak: 0,
+  currentRunStreakText: null,
+  userID: null,
+  level: undefined,
+};
+
+// Obiekt daty
+const callendarDate = {
+  today: functions.dateFunction(),
+  yesterday: functions.dateFunction(1),
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FUNKCJE LOKALNE
+
+const numberOfQuestions = async function () {
+  if (count >= 0) {
+    currentQuestion = allQuestions[count];
+    speakOutput += `${functions.randomFromArray(
+      functions.messages.nextQuestion
+    )} ${currentQuestion.questionInWords}?`;
+    speakOutput += ` ${additionalTime} `;
+    repromptText = functions.audio.repromptClock;
+    // Przypadek, gdy liczba pytań jest równa 0
+  } else {
+    speakOutput += `Alright! You correctly answered ${points} out of 5 questions!`;
+    // earning ${functions.addingPoints(
+    //   currentUser.level,
+    //   points
+    // )} points. `;
+    repromptText = "";
+    // console.log(`Points: ${points}`);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Dodawanie 'runStreak'
+
+    // Pobranie danych z 'runStreak' o danym ID użytkownika
+    const data = await dbHelper.getData(currentUser.userID);
+    // Zapisanie danych z 'runStreak' w tablicy
+    const dates = data.runStreak;
+    // Warunek który dodaje dzisiejszą datę, jeśli nie znajduje się ona w tablicy 'dates'
+    if (!dates.includes(callendarDate.today))
+      dates.push(functions.dateFunction());
+
+    // Dodanie do bazy tablicy i ID użytkownika w której odpowiedziałem na 5 pytań,
+    await dbHelper.addUser(currentUser.userID, dates);
+  }
+};
 
 const reset = function () {
   points = 0;
   count = 4;
 };
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -45,25 +89,78 @@ const LaunchRequestHandler = {
     );
   },
   async handle(handlerInput) {
-    userID = handlerInput.requestEnvelope.context.System.user.userId;
-    console.log("User ID:", userID, "[from file index.js]");
+    currentUser.userID =
+      handlerInput.requestEnvelope.context.System.user.userId;
+    console.log("User ID:", currentUser.userID, "[from file index.js]");
 
     try {
       // Pobranie danych z bazy w oparciu o użytkownika
-      data = await dbHelper.getData(userID);
+      data = await dbHelper.getData(currentUser.userID);
+      console.log(data);
 
       //Jeśli nie ma uzytkownika w bazie to tworzy się nowy
       if (data === undefined) {
         // Dodanie nowego użytkownika do bazy danych
-        await dbHelper.addUser(userID);
-        data = await dbHelper.getData(userID);
-        console.log(data);
+        await dbHelper.addUser(currentUser.userID, []);
+        data = await dbHelper.getData(currentUser.userID);
+        console.log("User Data:", data);
+        // A jeśli istnieje już użytkownik w bazie...
+      } else {
+        console.log("User Data:", data);
       }
 
-      level = undefined;
+      // Dodanie do bazy dzisiejszej daty w której odpowiedziałem na 5 pytań
+      // await dbHelper.updateStreak(currentUser.userID, functions.dateFunction());
+
+      currentUser.level = undefined;
       functions.newEquations();
       // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
-      speakOutput = functions.randomFromArray(functions.messages.welcome);
+
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      // Początkowe ustawienie 'runStreak'
+      const dates = data.runStreak;
+      if (
+        dates.includes(callendarDate.today) &&
+        !dates.includes(callendarDate.yesterday)
+      ) {
+        currentUser.runStreak = 1;
+      }
+
+      // Jeśli nie ma wczorajszej daty i nie ma dzisiejszej daty, ustaw 'runStreaks' na 0
+      if (
+        !dates.includes(callendarDate.today) &&
+        !dates.includes(callendarDate.yesterday)
+      ) {
+        currentUser.runStreak = 0;
+        // Usunięcie wszystkich dat z bazy w kolumnie 'runStreak'
+        await dbHelper.updateStreak(currentUser.userID, []);
+      }
+
+      // Jeśli znajduje się dzisiejsza data i wczorajsza data, wtedy ilość punktów === ilość elementów tablicy dat
+      if (
+        (dates.includes(callendarDate.today) &&
+          dates.includes(callendarDate.yesterday)) ||
+        (!dates.includes(callendarDate.today) &&
+          dates.includes(callendarDate.yesterday))
+      ) {
+        currentUser.runStreak = dates.length;
+      }
+
+      currentUser.currentRunStreakText = functions.runStreakOutput(
+        currentUser.runStreak
+      );
+
+      // Końcowa wypowiedź Alexy na powitanie
+      speakOutput = `${functions.randomFromArray([
+        `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
+        `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
+        `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
+        `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
+        `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
+        `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
+        // `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
+      ])}`;
     } catch (error) {
       console.log(`error message: ${error.message}`);
       console.log(`error stack: ${error.stack}`);
@@ -87,31 +184,32 @@ const GameLevelIntentHandler = {
   },
   handle(handlerInput) {
     speakOutput = "";
-    level = handlerInput.requestEnvelope.request.intent.slots.level.value;
+    currentUser.level =
+      handlerInput.requestEnvelope.request.intent.slots.level.value;
     speakOutput += `${functions.randomFromArray(
       functions.messages.choosenLevel
-    )} ${level}. `;
+    )} ${currentUser.level}. `;
 
-    if (level === "medium") {
+    if (currentUser.level === "medium") {
       speakOutput += `Because of that level, you will have extra 3 seconds. Alright! `;
     }
-    if (level === "hard") {
+    if (currentUser.level === "hard") {
       speakOutput += `Because of that level, you will have extra 6 seconds. Alright! `;
     }
-    if (level === "extreme") {
+    if (currentUser.level === "extreme") {
       speakOutput += `Because of that level, you will have extra 10 seconds. Alright! `;
     }
 
     reset();
     functions.newEquations();
 
-    if (level === "easy") {
+    if (currentUser.level === "easy") {
       allQuestions = equationsEasy.equations;
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
 
       additionalTime = `${functions.audio.additionalTime(0)}`;
-    } else if (level === "medium") {
+    } else if (currentUser.level === "medium") {
       allQuestions = equationsMedium.createQuestions();
       console.log(allQuestions);
       currentQuestion = allQuestions[count];
@@ -121,7 +219,7 @@ const GameLevelIntentHandler = {
         functions.audio.answerTime
       }`;
       speakOutput += ` ${additionalTime}`;
-    } else if (level === "hard") {
+    } else if (currentUser.level === "hard") {
       allQuestions = equationsHard.equations;
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
@@ -130,7 +228,7 @@ const GameLevelIntentHandler = {
         functions.audio.answerTime
       }`;
       speakOutput += ` ${additionalTime}`;
-    } else if (level === "extreme") {
+    } else if (currentUser.level === "extreme") {
       allQuestions = equationsExtreme.equations;
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
@@ -144,7 +242,7 @@ const GameLevelIntentHandler = {
         functions.messages.levelNotUnderstood
       );
     }
-    console.log("Level:", level);
+    console.log("Level:", currentUser.level);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -162,7 +260,7 @@ const ResultIntentHandler = {
   },
   handle(handlerInput) {
     //Jeśli poziom nie został wybrany, zwrócona zostanie od razu odpowiedź zeby wybrac level
-    if (level === undefined) {
+    if (currentUser.level === undefined) {
       speakOutput = "Choose the level first: easy, medium, hard or extreme.";
 
       return handlerInput.responseBuilder
@@ -177,27 +275,16 @@ const ResultIntentHandler = {
     const userResult =
       handlerInput.requestEnvelope.request.intent.slots.result.value;
 
+    // Gdy odpowiedź użytkownika się zgadza
     if (Number(userResult) === currentQuestion.result) {
       speakOutput += ` ${functions.audio.correctAnswer} Correct! That will be ${currentQuestion.result}. `;
       console.log(currentQuestion);
       console.log("Count:", count);
       points++;
       count--;
-      if (count >= 0) {
-        currentQuestion = allQuestions[count];
-        speakOutput += `${functions.randomFromArray(
-          functions.messages.nextQuestion
-        )} ${currentQuestion.questionInWords}? `;
-        speakOutput += ` ${additionalTime} `;
-        repromptText = functions.audio.repromptClock;
-      } else {
-        speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
-          level,
-          points
-        )} points. `;
-        repromptText = "";
-        console.log(`Points: ${points}`);
-      }
+      // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
+      numberOfQuestions();
+      // Gdy odpowiedź użytkownika się nie zgadza
     } else {
       speakOutput = `${
         functions.audio.incorrectAnswer
@@ -205,21 +292,8 @@ const ResultIntentHandler = {
         functions.messages.result
       )} ${currentQuestion.result}. `;
       count--;
-      if (count >= 0) {
-        currentQuestion = allQuestions[count];
-        speakOutput += `${functions.randomFromArray(
-          functions.messages.nextQuestion
-        )} ${currentQuestion.questionInWords}?`;
-        speakOutput += ` ${additionalTime} `;
-        repromptText = functions.audio.repromptClock;
-      } else {
-        speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
-          level,
-          points
-        )} points. `;
-        repromptText = "";
-        console.log(`Points: ${points}`);
-      }
+      // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
+      numberOfQuestions();
     }
 
     return handlerInput.responseBuilder
@@ -238,7 +312,7 @@ const dontKnowIntentHandler = {
   },
   handle(handlerInput) {
     //Jeśli poziom nie został wybrany, zwrócona zostanie od razu odpowiedź zeby wybrac level
-    if (level === undefined) {
+    if (currentUser.level === undefined) {
       speakOutput = "Choose the level first: easy, medium or hard.";
 
       return handlerInput.responseBuilder
@@ -254,21 +328,7 @@ const dontKnowIntentHandler = {
       functions.messages.result
     )} ${currentQuestion.result}. `;
     count--;
-    if (count >= 0) {
-      currentQuestion = allQuestions[count];
-      speakOutput += `${functions.randomFromArray(
-        functions.messages.nextQuestion
-      )} ${currentQuestion.questionInWords}?`;
-      speakOutput += ` ${additionalTime} `;
-      repromptText = functions.audio.repromptClock;
-    } else {
-      speakOutput += `Alright! You correctly answered ${points} out of 5 questions, earning ${functions.addingPoints(
-        level,
-        points
-      )} points. `;
-      repromptText = "";
-      console.log(`Points: ${points}`);
-    }
+    numberOfQuestions();
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -325,7 +385,8 @@ const CancelAndStopIntentHandler = {
   },
   handle(handlerInput) {
     const speakOutput =
-      "Hope you had fun! If you can, leave a review. Good or bad, it should be honest. Honest answers will make this game much better. Goodbye!";
+      // "Hope you had fun! If you can, leave a review. Good or bad, it should be honest. Honest answers will make this game much better. Goodbye!";
+      "Thanks!";
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   },
 };
@@ -339,7 +400,7 @@ const SessionEndedRequestHandler = {
   handle(handlerInput) {
     // Any cleanup logic goes here.
     reset();
-    level = undefined;
+    currentUser.level = undefined;
     // functions.newEquations();
     return handlerInput.responseBuilder.getResponse();
   },
