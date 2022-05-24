@@ -82,6 +82,11 @@
       "containsAds": false,
       "isChildDirected": false,
       "usesPersonalInfo": false
-    }
+    },
+    "permissions": [
+      {
+        "name": "alexa::alerts:reminders:skill:readwrite"
+      }
+    ]
   }
 }

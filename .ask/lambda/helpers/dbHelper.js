@@ -8,13 +8,14 @@ let dbHelper = function () {};
 let docClient = new AWS.DynamoDB.DocumentClient();
 
 // Funkcja pozwalająca na dodanie użytkownika do bazy, w oparciu o jego ID i o dzisiejszej dacie
-dbHelper.prototype.addUser = (userID, dates) => {
+dbHelper.prototype.addUser = (userID, dates, reminders = "none") => {
   return new Promise((resolve, reject) => {
     const params = {
       TableName: tableName,
       Item: {
         userId: userID,
         runStreak: dates,
+        reminders: reminders,
       },
     };
     docClient.put(params, (err, data) => {
@@ -61,6 +62,33 @@ dbHelper.prototype.updateStreak = (userID, runStreak) => {
       UpdateExpression: "set runStreak = :runStreak",
       ExpressionAttributeValues: {
         ":runStreak": runStreak,
+      },
+      ReturnValues: "UPDATED_NEW",
+    };
+    docClient.update(params, (err, data) => {
+      if (err) {
+        console.log(
+          "Nie dało się zaaktualizować uzytkownika ------> ",
+          JSON.stringify(err)
+        );
+        return reject("Nie dało się zaaktualizować");
+      }
+      resolve(data);
+    });
+  });
+};
+
+// Aktualizacja powiadomień w bazie
+dbHelper.prototype.updateReminders = (userID, reminders) => {
+  return new Promise((resolve, reject) => {
+    const params = {
+      TableName: tableName,
+      Key: {
+        userId: userID,
+      },
+      UpdateExpression: "set reminders = :reminders",
+      ExpressionAttributeValues: {
+        ":reminders": reminders,
       },
       ReturnValues: "UPDATED_NEW",
     };

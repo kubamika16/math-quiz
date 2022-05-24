@@ -2,11 +2,14 @@
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
 
 const Alexa = require("ask-sdk-core");
+const moment = require("moment-timezone");
+
 const functions = require("./helpers/functions");
 const equationsEasy = require("./helpers/equationsEasy");
 const equationsMedium = require("./helpers/equationsMedium");
 const equationsHard = require("./helpers/equationsHard");
 const equationsExtreme = require("./helpers/equationsExtreme");
+const reminderRequestHelper = require("./helpers/reminderRequestHelper.js");
 
 // Zmienne pozwalające na zapisanie danych w bazie
 const dbHelper = require("./helpers/dbHelper.js");
@@ -29,6 +32,8 @@ let currentUser = {
   currentRunStreakText: null,
   userID: null,
   level: undefined,
+  // Gdy użytkownik odpowiada na jakieś pytanie tak/nie
+  userYesNo: null,
 };
 
 // Obiekt daty
@@ -51,19 +56,27 @@ const numberOfQuestions = async function () {
     repromptText = functions.audio.repromptClock;
     // Przypadek, gdy liczba pytań jest równa 0
   } else {
-    speakOutput += `Alright! You correctly answered ${points} out of 5 questions!`;
-    // earning ${functions.addingPoints(
-    //   currentUser.level,
-    //   points
-    // )} points. `;
+    speakOutput += `Alright! You correctly answered ${points} out of 5 questions! `;
     repromptText = "";
-    // console.log(`Points: ${points}`);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Dodawanie 'runStreak'
 
-    // Pobranie danych z 'runStreak' o danym ID użytkownika
+    // speakOutput += "I am proud.";
+
+    // Pobranie danych z bazy o danym ID użytkownika
     const data = await dbHelper.getData(currentUser.userID);
+
+    // Dodanie informacji na temat powiadomień, gdy w bazie, kolumny 'reminders' istnieje defaultowe 'none'
+    if (data.reminders === "none") {
+      speakOutput += `By the way, This game would be much easier when you play it every day for just two minutes. I can create a daily reminder for you. If you agree, say the specific time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`;
+
+      // Ustawienie wartości 'reminder'. Pozwoli to na przekazanie tej zmiennej do switch/case, gdy użytkownik nie chce ustawiać powiadomień
+      currentUser.userYesNo = "reminder";
+    }
+
+    if (data.reminders === "denied") {
+      speakOutput += `If you want to play again, choose a level first. `;
+      repromptText = `Easy, medium, hard or extreme?`;
+    }
+
     // Zapisanie danych z 'runStreak' w tablicy
     const dates = data.runStreak;
     // Warunek który dodaje dzisiejszą datę, jeśli nie znajduje się ona w tablicy 'dates'
@@ -71,7 +84,7 @@ const numberOfQuestions = async function () {
       dates.push(functions.dateFunction());
 
     // Dodanie do bazy tablicy i ID użytkownika w której odpowiedziałem na 5 pytań,
-    await dbHelper.addUser(currentUser.userID, dates);
+    await dbHelper.updateStreak(currentUser.userID, dates);
   }
 };
 
@@ -79,6 +92,7 @@ const reset = function () {
   points = 0;
   count = 4;
 };
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -258,7 +272,7 @@ const ResultIntentHandler = {
       Alexa.getIntentName(handlerInput.requestEnvelope) === "ResultIntent"
     );
   },
-  handle(handlerInput) {
+  async handle(handlerInput) {
     //Jeśli poziom nie został wybrany, zwrócona zostanie od razu odpowiedź zeby wybrac level
     if (currentUser.level === undefined) {
       speakOutput = "Choose the level first: easy, medium, hard or extreme.";
@@ -283,7 +297,7 @@ const ResultIntentHandler = {
       points++;
       count--;
       // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
-      numberOfQuestions();
+      await numberOfQuestions();
       // Gdy odpowiedź użytkownika się nie zgadza
     } else {
       speakOutput = `${
@@ -293,8 +307,10 @@ const ResultIntentHandler = {
       )} ${currentQuestion.result}. `;
       count--;
       // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
-      numberOfQuestions();
+      await numberOfQuestions();
     }
+
+    console.log(speakOutput);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -354,6 +370,7 @@ const RepatQuestionIntentHandler = {
       .getResponse();
   },
 };
+
 const HelpIntentHandler = {
   canHandle(handlerInput) {
     return (
@@ -373,6 +390,119 @@ const HelpIntentHandler = {
   },
 };
 
+// Handler dotyczący przypomnień
+const ReminderIntentHandler = {
+  canHandle(handlerInput) {
+    return (
+      Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+      Alexa.getIntentName(handlerInput.requestEnvelope) === "ReminderIntent"
+    );
+  },
+  async handle(handlerInput) {
+    const reminderApiClient =
+      handlerInput.serviceClientFactory.getReminderManagementServiceClient();
+    try {
+      // Ustawienie zmiennej dotyczącej wszystkich zezwoleń dla użytkownika
+      const { permissions } = handlerInput.requestEnvelope.context.System.user;
+
+      console.log(permissions);
+
+      // Jeśli użytkownik nie ma żadnych zezwoleń, wtedy alexa o tym powiadamia oraz wysyła prośbę w aplikacji
+      if (!permissions) {
+        speakOutput = `Looks like you didn't set permissions to send you reminders. Go to the Alexa App on your phone, and turn the reminders on.`;
+        return handlerInput.responseBuilder
+          .speak(speakOutput)
+          .withAskForPermissionsConsentCard([
+            "alexa::alerts:reminders:skill:readwrite",
+          ])
+          .getResponse();
+      } else {
+        const currentDateTime = moment().tz("America/Los_Angeles");
+
+        const reminderRequest = {
+          requestTime: currentDateTime.format("YYYY-MM-DDTHH:mm:ss"),
+          trigger: {
+            type: "SCHEDULED_ABSOLUTE",
+            scheduledTime: currentDateTime
+              .set({
+                hour: "13",
+                minute: "00",
+                second: "00",
+              })
+              .format("YYYY-MM-DDTHH:mm:ss"),
+            timeZoneId: "America/Los_Angeles",
+            recurrence: {
+              freq: "DAILY",
+            },
+          },
+          alertInfo: {
+            spokenInfo: {
+              content: [
+                {
+                  locale: "en-US",
+                  text: "Play Math Quiz",
+                  ssml: "<speak>Play Math Quiz</speak>",
+                },
+              ],
+            },
+          },
+          pushNotification: {
+            status: "ENABLED",
+          },
+        };
+
+        speakOutput = `You successfully schedule a daily reminder.`;
+
+        // Wywołanie przypomnienia
+        await reminderApiClient.createReminder(reminderRequest);
+      }
+    } catch (error) {
+      console.log(`error message: ${error.message}`);
+      console.log(`error stack: ${error.stack}`);
+      console.log(`error status code: ${error.statusCode}`);
+      console.log(`error response: ${error.response}`);
+      speakOutput = `A reminder error occured.`;
+    }
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+};
+
+// Handler uruchamiający się w momencie gdy użytkownik powie 'nie'
+const NoIntentHandler = {
+  canHandle(handlerInput) {
+    return (
+      Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+      Alexa.getIntentName(handlerInput.requestEnvelope) === "noIntent"
+    );
+  },
+  async handle(handlerInput) {
+    try {
+      switch (currentUser.userYesNo) {
+        case "reminder":
+          speakOutput = `No worries. If you want to play again choose a level (easy, medium, hard or extreme), or say stop to exit.`;
+          // Aktualizacja bazy w oparciu o to co powiedział użytkownik. Nie chce żeby dostawać powiadomienia, więc ta informacja zostaje dodana do bazy.
+          await dbHelper.updateReminders(currentUser.userID, "denied");
+          break;
+      }
+    } catch (error) {
+      console.log(`error message: ${error.message}`);
+      console.log(`error stack: ${error.stack}`);
+      console.log(`error status code: ${error.statusCode}`);
+      console.log(`error response: ${error.response}`);
+      speakOutput = `A launch request error occured.`;
+    }
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+};
+
 const CancelAndStopIntentHandler = {
   canHandle(handlerInput) {
     return (
@@ -386,7 +516,7 @@ const CancelAndStopIntentHandler = {
   handle(handlerInput) {
     const speakOutput =
       // "Hope you had fun! If you can, leave a review. Good or bad, it should be honest. Honest answers will make this game much better. Goodbye!";
-      "Thanks!";
+      "Thanks for playing. See you soon!";
     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   },
 };
@@ -400,7 +530,8 @@ const SessionEndedRequestHandler = {
   handle(handlerInput) {
     // Any cleanup logic goes here.
     reset();
-    currentUser.level = undefined;
+    currentUser.userYesNo = null;
+    // userReset();
     // functions.newEquations();
     return handlerInput.responseBuilder.getResponse();
   },
@@ -457,12 +588,15 @@ exports.handler = Alexa.SkillBuilders.custom()
     ResultIntentHandler,
     dontKnowIntentHandler,
     HelpIntentHandler,
+    ReminderIntentHandler,
+    NoIntentHandler,
     RepatQuestionIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler,
     IntentReflectorHandler // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
   )
   .addErrorHandlers(ErrorHandler)
+  .withApiClient(new Alexa.DefaultApiClient())
   .withPersistenceAdapter(
     new Adapter.DynamoDbPersistenceAdapter({
       tableName: dynamoDBTableName,

@@ -165,6 +165,49 @@
             "why not",
             "sure"
           ]
+        },
+        {
+          "name": "noIntent",
+          "slots": [],
+          "samples": [
+            "definitely no",
+            "not",
+            "i don't want it",
+            "no thanks",
+            "no"
+          ]
+        },
+        {
+          "name": "ReminderIntent",
+          "slots": [
+            {
+              "name": "time",
+              "type": "AMAZON.TIME",
+              "samples": [
+                "maybe {time}",
+                "on {time}",
+                "in {time}",
+                "at {time}",
+                "{time}"
+              ]
+            }
+          ],
+          "samples": [
+            "{time} pm",
+            "{time} am",
+            "{time}",
+            "i need a reminder",
+            "can you set {time} please",
+            "will you set {time} for",
+            "yes i want a reminder",
+            "remind me at {time}",
+            "remnder at {time} P.M",
+            "reminder at {time} A.M",
+            "reminder on ",
+            "reminder at",
+            "yes I need a reminder",
+            "I want a reminder"
+          ]
         }
       ],
       "types": [
@@ -198,6 +241,38 @@
           ]
         }
       ]
-    }
+    },
+    "dialog": {
+      "intents": [
+        {
+          "name": "ReminderIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "time",
+              "type": "AMAZON.TIME",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Slot.526965240354.1073553066024"
+              }
+            }
+          ]
+        }
+      ],
+      "delegationStrategy": "ALWAYS"
+    },
+    "prompts": [
+      {
+        "id": "Elicit.Slot.526965240354.1073553066024",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "What time would you like to be reminded about?"
+          }
+        ]
+      }
+    ]
   }
 }
