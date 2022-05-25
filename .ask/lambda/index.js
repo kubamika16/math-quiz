@@ -399,6 +399,19 @@ const ReminderIntentHandler = {
     );
   },
   async handle(handlerInput) {
+    let userTimeInput =
+      handlerInput.requestEnvelope.request.intent.slots.time.value;
+    let userInputHour;
+    let userInputMinute;
+
+    if (userTimeInput.includes(":")) {
+      userTimeInput = userTimeInput.split(":");
+      userInputHour = userTimeInput[0];
+      userInputMinute = userTimeInput[1];
+    }
+
+    console.log("userTimeInput", userTimeInput);
+
     const reminderApiClient =
       handlerInput.serviceClientFactory.getReminderManagementServiceClient();
     try {
@@ -417,44 +430,32 @@ const ReminderIntentHandler = {
           ])
           .getResponse();
       } else {
-        const currentDateTime = moment().tz("America/Los_Angeles");
+        // Pobranie danych urządzenia użytkownika (jego czas lokalny)
+        const { deviceId } = handlerInput.requestEnvelope.context.System.device;
+        const upsServiceClient =
+          handlerInput.serviceClientFactory.getUpsServiceClient();
+        const userTimeZone = await upsServiceClient.getSystemTimeZone(deviceId);
 
-        const reminderRequest = {
-          requestTime: currentDateTime.format("YYYY-MM-DDTHH:mm:ss"),
-          trigger: {
-            type: "SCHEDULED_ABSOLUTE",
-            scheduledTime: currentDateTime
-              .set({
-                hour: "13",
-                minute: "00",
-                second: "00",
-              })
-              .format("YYYY-MM-DDTHH:mm:ss"),
-            timeZoneId: "America/Los_Angeles",
-            recurrence: {
-              freq: "DAILY",
-            },
-          },
-          alertInfo: {
-            spokenInfo: {
-              content: [
-                {
-                  locale: "en-US",
-                  text: "Play Math Quiz",
-                  ssml: "<speak>Play Math Quiz</speak>",
-                },
-              ],
-            },
-          },
-          pushNotification: {
-            status: "ENABLED",
-          },
-        };
+        // Ustawienie daty na datę lokalną użytkownika
+        const currentDateTime = moment().tz(userTimeZone);
 
-        speakOutput = `You successfully schedule a daily reminder.`;
+        // speakOutput = `This is a developement stage of creating reminders.`;
+        speakOutput = `You successfully scheduled a daily reminder.`;
 
         // Wywołanie przypomnienia
-        await reminderApiClient.createReminder(reminderRequest);
+        await reminderApiClient.createReminder(
+          reminderRequestHelper.settingReminderRequest(
+            currentDateTime,
+            userInputHour,
+            userInputMinute,
+            userTimeZone
+          )
+        );
+
+        // Dodanie w bazie informacji o tym że użytkownik użył już powiadomienia
+        // BUG BUG BUG
+        // Tu jestem
+        await dbHelper.updateReminders(currentUser.userID, "on");
       }
     } catch (error) {
       console.log(`error message: ${error.message}`);
@@ -485,7 +486,7 @@ const NoIntentHandler = {
         case "reminder":
           speakOutput = `No worries. If you want to play again choose a level (easy, medium, hard or extreme), or say stop to exit.`;
           // Aktualizacja bazy w oparciu o to co powiedział użytkownik. Nie chce żeby dostawać powiadomienia, więc ta informacja zostaje dodana do bazy.
-          await dbHelper.updateReminders(currentUser.userID, "denied");
+          await dbHelper.updateReminders(currentUser.userID, "off");
           break;
       }
     } catch (error) {

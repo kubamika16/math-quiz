@@ -144,29 +144,6 @@
           ]
         },
         {
-          "name": "YesIntent",
-          "slots": [],
-          "samples": [
-            "go",
-            "yeah i want to",
-            "good",
-            "but why not",
-            "ok",
-            "i want it",
-            "yes i did",
-            "go for it",
-            "okay",
-            "i do",
-            "obviously",
-            "yes i want that",
-            "of course",
-            "yes",
-            "sounds good",
-            "why not",
-            "sure"
-          ]
-        },
-        {
           "name": "noIntent",
           "slots": [],
           "samples": [
