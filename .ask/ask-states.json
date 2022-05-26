@@ -8,8 +8,8 @@
             "default": {
               "lambda": {
                 "arn": "arn:aws:lambda:us-east-1:454044463163:function:ask-math-quiz-default-default-1643210906959",
-                "lastModified": "2022-05-26T07:35:02.000+0000",
-                "revisionId": "e11b667d-2ab2-4a5c-ad92-1fa3f9e501d6"
+                "lastModified": "2022-05-26T07:58:44.000+0000",
+                "revisionId": "4da96e75-9db5-452e-8f34-a54ef9afd098"
               },
               "iamRole": "arn:aws:iam::454044463163:role/ask-lambda-math-quiz-1643210894855"
             }
@@ -22,7 +22,7 @@
       },
       "code": {
         "default": {
-          "lastDeployHash": "A9XhVv9cVGL6188s5UE53jEqI/Y="
+          "lastDeployHash": "fojfnxyQQ2WLg9bbiqUYXTf828I="
         }
       }
     }
