@@ -64,16 +64,19 @@ const numberOfQuestions = async function () {
     // Pobranie danych z bazy o danym ID użytkownika
     const data = await dbHelper.getData(currentUser.userID);
 
-    // Dodanie informacji na temat powiadomień, gdy w bazie, kolumny 'reminders' istnieje defaultowe 'none'
-    if (data.reminders === "none") {
-      speakOutput += `By the way, This game would be much easier when you play it every day for just two minutes. I can create a daily reminder for you. If you agree, say the specific time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`;
+    // BUG BUG BUG BUG BUG
+    // Wyłączyć komentarze gdy aplikacja przejdzie certyfikacje.
 
-      // Ustawienie wartości 'reminder'. Pozwoli to na przekazanie tej zmiennej do switch/case, gdy użytkownik nie chce ustawiać powiadomień
-      currentUser.userYesNo = "reminder";
-    }
+    // // Dodanie informacji na temat powiadomień, gdy w bazie, kolumny 'reminders' istnieje defaultowe 'none'
+    // if (data.reminders === "none") {
+    //   speakOutput += `By the way, This game would be much easier when you play it every day for just two minutes. I can create a daily reminder for you. If you agree, say the specific time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`;
 
-    if (data.reminders === "denied") {
-      speakOutput += `If you want to play again, choose a level first. `;
+    //   // Ustawienie wartości 'reminder'. Pozwoli to na przekazanie tej zmiennej do switch/case, gdy użytkownik nie chce ustawiać powiadomień
+    //   currentUser.userYesNo = "reminder";
+    // }
+
+    if (data.reminders === "denied" || data.reminders === "none") {
+      speakOutput += `If you want to play again, choose a level: easy, medium, hard, or extreme? `;
       repromptText = `Easy, medium, hard or extreme?`;
     }
 
@@ -399,70 +402,75 @@ const ReminderIntentHandler = {
     );
   },
   async handle(handlerInput) {
-    let userTimeInput =
-      handlerInput.requestEnvelope.request.intent.slots.time.value;
-    let userInputHour;
-    let userInputMinute;
+    // BUG BUG BUG BUG BUG
+    // Wyłączyć komentarze gdy aplikacja przejdzie certyfikacje.
 
-    if (userTimeInput.includes(":")) {
-      userTimeInput = userTimeInput.split(":");
-      userInputHour = userTimeInput[0];
-      userInputMinute = userTimeInput[1];
-    }
+    // let userTimeInput =
+    //   handlerInput.requestEnvelope.request.intent.slots.time.value;
+    // let userInputHour;
+    // let userInputMinute;
 
-    console.log("userTimeInput", userTimeInput);
+    // if (userTimeInput.includes(":")) {
+    //   userTimeInput = userTimeInput.split(":");
+    //   userInputHour = userTimeInput[0];
+    //   userInputMinute = userTimeInput[1];
+    // }
 
-    const reminderApiClient =
-      handlerInput.serviceClientFactory.getReminderManagementServiceClient();
-    try {
-      // Ustawienie zmiennej dotyczącej wszystkich zezwoleń dla użytkownika
-      const { permissions } = handlerInput.requestEnvelope.context.System.user;
+    // console.log("userTimeInput", userTimeInput);
 
-      console.log(permissions);
+    // const reminderApiClient =
+    //   handlerInput.serviceClientFactory.getReminderManagementServiceClient();
+    // try {
+    //   // Ustawienie zmiennej dotyczącej wszystkich zezwoleń dla użytkownika
+    //   const { permissions } = handlerInput.requestEnvelope.context.System.user;
 
-      // Jeśli użytkownik nie ma żadnych zezwoleń, wtedy alexa o tym powiadamia oraz wysyła prośbę w aplikacji
-      if (!permissions) {
-        speakOutput = `Looks like you didn't set permissions to send you reminders. Go to the Alexa App on your phone, and turn the reminders on.`;
-        return handlerInput.responseBuilder
-          .speak(speakOutput)
-          .withAskForPermissionsConsentCard([
-            "alexa::alerts:reminders:skill:readwrite",
-          ])
-          .getResponse();
-      } else {
-        // Pobranie danych urządzenia użytkownika (jego czas lokalny)
-        const { deviceId } = handlerInput.requestEnvelope.context.System.device;
-        const upsServiceClient =
-          handlerInput.serviceClientFactory.getUpsServiceClient();
-        const userTimeZone = await upsServiceClient.getSystemTimeZone(deviceId);
+    //   console.log(permissions);
 
-        // Ustawienie daty na datę lokalną użytkownika
-        const currentDateTime = moment().tz(userTimeZone);
+    //   // Jeśli użytkownik nie ma żadnych zezwoleń, wtedy alexa o tym powiadamia oraz wysyła prośbę w aplikacji
+    //   if (!permissions) {
+    //     speakOutput = `Looks like you didn't set permissions to send you reminders. Go to the Alexa App on your phone, and turn the reminders on.`;
+    //     return handlerInput.responseBuilder
+    //       .speak(speakOutput)
+    //       .withAskForPermissionsConsentCard([
+    //         "alexa::alerts:reminders:skill:readwrite",
+    //       ])
+    //       .getResponse();
+    //   } else {
+    //     // Pobranie danych urządzenia użytkownika (jego czas lokalny)
+    //     const { deviceId } = handlerInput.requestEnvelope.context.System.device;
+    //     const upsServiceClient =
+    //       handlerInput.serviceClientFactory.getUpsServiceClient();
+    //     const userTimeZone = await upsServiceClient.getSystemTimeZone(deviceId);
 
-        // speakOutput = `This is a developement stage of creating reminders.`;
-        speakOutput = `You successfully scheduled a daily reminder.`;
+    //     // Ustawienie daty na datę lokalną użytkownika
+    //     const currentDateTime = moment().tz(userTimeZone);
 
-        // Wywołanie przypomnienia
-        await reminderApiClient.createReminder(
-          reminderRequestHelper.settingReminderRequest(
-            currentDateTime,
-            userInputHour,
-            userInputMinute,
-            userTimeZone
-          )
-        );
+    //     // speakOutput = `This is a developement stage of creating reminders.`;
+    //     speakOutput = `You successfully scheduled a daily reminder.`;
 
-        // Aktualizacja w bazie dotycząca tego, że użytkownik pozwolił sobie na uruchomienie powiadomień
-        await dbHelper.updateReminders(currentUser.userID, "on");
-      }
-    } catch (error) {
-      console.log(`error message: ${error.message}`);
-      console.log(`error stack: ${error.stack}`);
-      console.log(`error status code: ${error.statusCode}`);
-      console.log(`error response: ${error.response}`);
-      speakOutput = `A reminder error occured.`;
-    }
+    //     // Wywołanie przypomnienia
+    //     await reminderApiClient.createReminder(
+    //       reminderRequestHelper.settingReminderRequest(
+    //         currentDateTime,
+    //         userInputHour,
+    //         userInputMinute,
+    //         userTimeZone
+    //       )
+    //     );
 
+    //     // Aktualizacja w bazie dotycząca tego, że użytkownik pozwolił sobie na uruchomienie powiadomień
+    //     await dbHelper.updateReminders(currentUser.userID, "on");
+
+    //   }
+    // } catch (error) {
+    //   console.log(`error message: ${error.message}`);
+    //   console.log(`error stack: ${error.stack}`);
+    //   console.log(`error status code: ${error.statusCode}`);
+    //   console.log(`error response: ${error.response}`);
+    //   speakOutput = `A reminder error occured.`;
+    // }
+
+    speakOutput = `Soon you will have a permission to create a daily reminder. For now, it is not possible. Choose the level then. Easy, medium, hard or extreme?`;
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .reprompt()
