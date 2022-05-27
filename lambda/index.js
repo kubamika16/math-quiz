@@ -1,10 +1,12 @@
+// 2 sesja w Krakowie (27/05/2022)
+
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
 // 1. Add Multimodal Experience
 // 2. Add Reminders API - ZROBIONE
 // 3. Add Feature to Save Progress
 // 4. Include StartOver Intent - ZROBIONE
-// 5. End a main response with a question
-// 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill
+// 5. End a main response with a question - ZROBIONE
+// 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill - ZROBIONE
 // 7. Add Fresh Content
 // 8. Update skill’s metadata to provide more information
 
@@ -82,7 +84,7 @@ const numberOfQuestions = async function () {
       currentUser.userYesNo = "reminder";
     }
 
-    if (data.reminders === "denied" || data.reminders === "none") {
+    if (data.reminders === "off" || data.reminders === "on") {
       speakOutput += `If you want to play again, choose a level: easy, medium, hard, or extreme? `;
       repromptText = `Easy, medium, hard or extreme?`;
     }
@@ -139,7 +141,7 @@ const LaunchRequestHandler = {
       currentUser.level = undefined;
 
       // UNCERTAIN ACTION - usunąłem funkcję tworzącą nowe pytania. Nie jestem pewien czy jest mi to potrzebne.
-      functions.newEquations();
+      // functions.newEquations();
       // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -498,7 +500,7 @@ const ReminderIntentHandler = {
       speakOutput = `A reminder error occured.`;
     }
 
-    speakOutput = `Soon you will have a permission to create a daily reminder. For now, it is not possible. Choose the level then. Easy, medium, hard or extreme?`;
+    // speakOutput = `Soon you will have a permission to create a daily reminder. For now, it is not possible. Choose the level then. Easy, medium, hard or extreme?`;
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .reprompt()

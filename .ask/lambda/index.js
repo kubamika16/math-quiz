@@ -1,9 +1,10 @@
+// 1 sesja w Krakowie
+
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
 // 1. Add Multimodal Experience
 // 2. Add Reminders API - ZROBIONE
 // 3. Add Feature to Save Progress
-// TO DO
-// 4. Include StartOver Intent - W TRAKCIE
+// 4. Include StartOver Intent - ZROBIONE
 // 5. End a main response with a question
 // 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill
 // 7. Add Fresh Content
@@ -83,7 +84,7 @@ const numberOfQuestions = async function () {
       currentUser.userYesNo = "reminder";
     }
 
-    if (data.reminders === "denied" || data.reminders === "none") {
+    if (data.reminders === "off" || data.reminders === "on") {
       speakOutput += `If you want to play again, choose a level: easy, medium, hard, or extreme? `;
       repromptText = `Easy, medium, hard or extreme?`;
     }
@@ -140,7 +141,7 @@ const LaunchRequestHandler = {
       currentUser.level = undefined;
 
       // UNCERTAIN ACTION - usunąłem funkcję tworzącą nowe pytania. Nie jestem pewien czy jest mi to potrzebne.
-      functions.newEquations();
+      // functions.newEquations();
       // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,13 +181,13 @@ const LaunchRequestHandler = {
 
       // Końcowa wypowiedź Alexy na powitanie
       speakOutput = `${functions.randomFromArray([
-        // `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
-        // `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
-        // `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
-        // `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
-        // `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
-        // `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
-        `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
+        `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
+        `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
+        `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
+        `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
+        `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
+        `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
+        // `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
       ])}`;
     } catch (error) {
       console.log(`error message: ${error.message}`);
@@ -499,7 +500,7 @@ const ReminderIntentHandler = {
       speakOutput = `A reminder error occured.`;
     }
 
-    speakOutput = `Soon you will have a permission to create a daily reminder. For now, it is not possible. Choose the level then. Easy, medium, hard or extreme?`;
+    // speakOutput = `Soon you will have a permission to create a daily reminder. For now, it is not possible. Choose the level then. Easy, medium, hard or extreme?`;
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .reprompt()
