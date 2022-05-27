@@ -1,4 +1,5 @@
-// 2 sesja w Krakowie (27/05/2022)
+// 3 sesje w Krakowie (27/05/2022)
+// Przerobić całkowicie plik 'equationsMedium'. Wiem że da się go uprościć
 
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
 // 1. Add Multimodal Experience
@@ -7,7 +8,8 @@
 // 4. Include StartOver Intent - ZROBIONE
 // 5. End a main response with a question - ZROBIONE
 // 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill - ZROBIONE
-// 7. Add Fresh Content
+// TO DO
+// 7. Add Fresh Content (More math questions)
 // 8. Update skill’s metadata to provide more information
 
 //Problemy na które jeszcze nie znalazłem rozwiązania:

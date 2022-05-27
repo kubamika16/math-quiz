@@ -2,16 +2,21 @@
 // questionInWords: userResult.questionInWords,
 // result: userResult.result,
 
+// Wyszukiwanie randomowych liczb z tablicy
 const randomFromArray = (array) =>
   array[Math.floor(Math.random() * array.length)];
 
+//Liczba całkowita (albo dziesiętna)
 const decimalNumber = (num) => !!(num % 1);
 
+// Liczby danego przedziału (np. od 20 do 50)
 const fromXtoY = (from, length) =>
   randomFromArray(Array.from({ length: length }, (_, i) => i + from));
 
+// Liczby na których wykonywane są obliczenia
 let numbers2count = Array.from({ length: 86 }, (_, i) => i + 14);
 
+// Liczby które powinno się usunąć, tak żeby działania nie były za proste
 const numbersToDelete = [11, 20, 21, 30, 31, 40, 41, 50, 60, 70, 80, 90];
 numbersToDelete.forEach((numberDelete) => {
   numbers2count = numbers2count.filter((number) => number !== numberDelete);
@@ -19,6 +24,7 @@ numbersToDelete.forEach((numberDelete) => {
 //////////////////////////////Times////////////////////////
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
+// Funkcja dotycząca mnożenia
 const timesFunction = () => {
   const twoTimes = `2 * ${fromXtoY(1, 9)}${fromXtoY(6, 4)}`;
   const threeTimes = `3 * ${fromXtoY(1, 9)}${fromXtoY(2, 5)}`;
@@ -27,6 +33,7 @@ const timesFunction = () => {
   const sevenEightTimes = `${randomFromArray([7, 8])} * 1${fromXtoY(2, 4)}`;
   const nineTimes = `9 * 1${fromXtoY(2, 3)}`;
 
+  // Randomowe działanie ze zmniennych wyżej
   let dataTimes = randomFromArray([
     twoTimes,
     threeTimes,
@@ -36,6 +43,7 @@ const timesFunction = () => {
     nineTimes,
   ]);
 
+  // Zwrócenie wartości mnożenia w obiekcie 'times'
   return (times = {
     userResult: dataTimes,
     questionInWords: dataTimes,
@@ -47,10 +55,13 @@ const timesFunction = () => {
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 
+// Funkcja dotycząca dodawania
 const plusFunction = () => {
+  // Zmienna dodająca do siebie 2 liczby. Od 14 do 100
   const equationPlus = `${randomFromArray(numbers2count)} + ${randomFromArray(
     numbers2count
   )}`;
+  // Zwrócenie obiektu dodawania
   return (plus = {
     userResult: equationPlus,
     questionInWords: equationPlus,
@@ -62,6 +73,7 @@ const plusFunction = () => {
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 
+// Funkcja dotycząca odejmowania
 const minusFunction = () => {
   let minusFirst = randomFromArray(numbers2count);
   let minusSecond;
