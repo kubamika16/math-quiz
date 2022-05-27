@@ -185,6 +185,10 @@
             "yes I need a reminder",
             "I want a reminder"
           ]
+        },
+        {
+          "name": "AMAZON.StartOverIntent",
+          "samples": ["I want to start over", "I want to play again"]
         }
       ],
       "types": [

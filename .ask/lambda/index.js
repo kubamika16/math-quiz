@@ -1,3 +1,14 @@
+// Podpowiedzi od Alexa Skills Insights @ amazon.com
+// 1. Add Multimodal Experience
+// 2. Add Reminders API - ZROBIONE
+// 3. Add Feature to Save Progress
+// TO DO
+// 4. Include StartOver Intent - W TRAKCIE
+// 5. End a main response with a question
+// 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill
+// 7. Add Fresh Content
+// 8. Update skill’s metadata to provide more information
+
 //Problemy na które jeszcze nie znalazłem rozwiązania:
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
 
@@ -64,9 +75,6 @@ const numberOfQuestions = async function () {
     // Pobranie danych z bazy o danym ID użytkownika
     const data = await dbHelper.getData(currentUser.userID);
 
-    // BUG BUG BUG BUG BUG
-    // Wyłączyć komentarze gdy aplikacja przejdzie certyfikacje.
-
     // Dodanie informacji na temat powiadomień, gdy w bazie, kolumny 'reminders' istnieje defaultowe 'none'
     if (data.reminders === "none") {
       speakOutput += `By the way, This game would be much easier when you play it every day for just two minutes. I can create a daily reminder for you. If you agree, say the specific time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`;
@@ -130,6 +138,8 @@ const LaunchRequestHandler = {
       // await dbHelper.updateStreak(currentUser.userID, functions.dateFunction());
 
       currentUser.level = undefined;
+
+      // UNCERTAIN ACTION - usunąłem funkcję tworzącą nowe pytania. Nie jestem pewien czy jest mi to potrzebne.
       functions.newEquations();
       // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
 
@@ -170,13 +180,13 @@ const LaunchRequestHandler = {
 
       // Końcowa wypowiedź Alexy na powitanie
       speakOutput = `${functions.randomFromArray([
-        `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
-        `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
-        `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
-        `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
-        `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
-        `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
-        // `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
+        // `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
+        // `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
+        // `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
+        // `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
+        // `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
+        // `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
+        `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
       ])}`;
     } catch (error) {
       console.log(`error message: ${error.message}`);
@@ -218,6 +228,7 @@ const GameLevelIntentHandler = {
     }
 
     reset();
+    // Utworzenie nowych pytań dla KAŻDEGO LEVELU
     functions.newEquations();
 
     if (currentUser.level === "easy") {
@@ -299,7 +310,7 @@ const ResultIntentHandler = {
       console.log("Count:", count);
       points++;
       count--;
-      // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
+      // Wywołanie funkcji która bierze pod uwagę dwa przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
       await numberOfQuestions();
       // Gdy odpowiedź użytkownika się nie zgadza
     } else {
@@ -393,6 +404,28 @@ const HelpIntentHandler = {
   },
 };
 
+const StartOverIntentHandler = {
+  canHandle(handlerInput) {
+    return (
+      Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+      Alexa.getIntentName(handlerInput.requestEnvelope) ===
+        "AMAZON.StartOverIntent"
+    );
+  },
+  handle(handlerInput) {
+    speakOutput = `Alright. Now that you want to restart the game, pick a level first: easy, medium, hard or extreme?`;
+    repromptText = `Which level would you like to play?`;
+
+    reset();
+    currentUser.level === undefined;
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt(repromptText)
+      .getResponse();
+  },
+};
+
 // Handler dotyczący przypomnień
 const ReminderIntentHandler = {
   canHandle(handlerInput) {
@@ -402,9 +435,6 @@ const ReminderIntentHandler = {
     );
   },
   async handle(handlerInput) {
-    // BUG BUG BUG BUG BUG
-    // Wyłączyć komentarze gdy aplikacja przejdzie certyfikacje.
-
     let userTimeInput =
       handlerInput.requestEnvelope.request.intent.slots.time.value;
     let userInputHour;
@@ -594,6 +624,7 @@ exports.handler = Alexa.SkillBuilders.custom()
     ResultIntentHandler,
     dontKnowIntentHandler,
     HelpIntentHandler,
+    StartOverIntentHandler,
     ReminderIntentHandler,
     NoIntentHandler,
     RepatQuestionIntentHandler,
