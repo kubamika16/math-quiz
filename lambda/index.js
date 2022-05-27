@@ -2,8 +2,7 @@
 // 1. Add Multimodal Experience
 // 2. Add Reminders API - ZROBIONE
 // 3. Add Feature to Save Progress
-// TO DO
-// 4. Include StartOver Intent - W TRAKCIE
+// 4. Include StartOver Intent - ZROBIONE
 // 5. End a main response with a question
 // 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill
 // 7. Add Fresh Content
