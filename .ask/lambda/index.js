@@ -1,13 +1,17 @@
-// 1 sesja w Krakowie
+// 5 sesji w Krakowie (27/05/2022)
+
+// Przydałoby się zrobić w odejmowaniu tak, żeby różnica pomiędzy dwoma liczbami była większa niż 5
+// Pracuje w pliku test.js i equationsMedium.js
 
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
 // 1. Add Multimodal Experience
 // 2. Add Reminders API - ZROBIONE
 // 3. Add Feature to Save Progress
 // 4. Include StartOver Intent - ZROBIONE
-// 5. End a main response with a question
-// 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill
-// 7. Add Fresh Content
+// 5. End a main response with a question - ZROBIONE
+// 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill - ZROBIONE
+// TO DO
+// 7. Add Fresh Content (More math questions)
 // 8. Update skill’s metadata to provide more information
 
 //Problemy na które jeszcze nie znalazłem rozwiązania:
