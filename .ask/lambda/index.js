@@ -10,8 +10,7 @@
 // 4. Include StartOver Intent - ZROBIONE
 // 5. End a main response with a question - ZROBIONE
 // 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill - ZROBIONE
-// TO DO
-// 7. Add Fresh Content (More math questions)
+// 7. Add Fresh Content (More math questions) - ZROBIONE
 // 8. Update skill’s metadata to provide more information
 
 //Problemy na które jeszcze nie znalazłem rozwiązania:
@@ -141,12 +140,7 @@ const LaunchRequestHandler = {
 
       // Dodanie do bazy dzisiejszej daty w której odpowiedziałem na 5 pytań
       // await dbHelper.updateStreak(currentUser.userID, functions.dateFunction());
-
       currentUser.level = undefined;
-
-      // UNCERTAIN ACTION - usunąłem funkcję tworzącą nowe pytania. Nie jestem pewien czy jest mi to potrzebne.
-      // functions.newEquations();
-      // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,6 +176,26 @@ const LaunchRequestHandler = {
       currentUser.currentRunStreakText = functions.runStreakOutput(
         currentUser.runStreak
       );
+
+      /////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////
+      // Persistant Attributes Example
+
+      // let persistentAttributes = {
+      //   profile: {
+      //     allergies: "nuts",
+      //   },
+      // };
+
+      // handlerInput.attributesManager.setPersistentAttributes(
+      //   persistentAttributes
+      // );
+      // handlerInput.attributesManager.savePersistentAttributes();
+
+      /////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////
 
       // Końcowa wypowiedź Alexy na powitanie
       speakOutput = `${functions.randomFromArray([
@@ -328,6 +342,11 @@ const ResultIntentHandler = {
       // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
       await numberOfQuestions();
     }
+
+    // let persistentAttributes =
+    //   await handlerInput.attributesManager.getPersistentAttributes();
+
+    // console.log("Getting Persistent Attributes", persistentAttributes);
 
     console.log(speakOutput);
 

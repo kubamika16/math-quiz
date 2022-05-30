@@ -6,12 +6,12 @@
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
 // 1. Add Multimodal Experience
 // 2. Add Reminders API - ZROBIONE
+// TO DO
 // 3. Add Feature to Save Progress
 // 4. Include StartOver Intent - ZROBIONE
 // 5. End a main response with a question - ZROBIONE
 // 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill - ZROBIONE
-// TO DO
-// 7. Add Fresh Content (More math questions)
+// 7. Add Fresh Content (More math questions) - ZROBIONE
 // 8. Update skill’s metadata to provide more information
 
 //Problemy na które jeszcze nie znalazłem rozwiązania:
@@ -141,12 +141,7 @@ const LaunchRequestHandler = {
 
       // Dodanie do bazy dzisiejszej daty w której odpowiedziałem na 5 pytań
       // await dbHelper.updateStreak(currentUser.userID, functions.dateFunction());
-
       currentUser.level = undefined;
-
-      // UNCERTAIN ACTION - usunąłem funkcję tworzącą nowe pytania. Nie jestem pewien czy jest mi to potrzebne.
-      // functions.newEquations();
-      // const speakOutput = 'Welcome, you can say Hello or Help. Which would you like to try?';
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
