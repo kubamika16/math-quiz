@@ -159,8 +159,8 @@ const createQuestions = () => {
     }
   } while (calculations.length < 5);
 
-  console.log("equations, po", equations);
-  console.log("userResult, po", calculations);
+  // console.log("equations, po", equations);
+  // console.log("userResult, po", calculations);
   return equations;
 };
 

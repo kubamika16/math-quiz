@@ -101,6 +101,9 @@ const numberOfQuestions = async function () {
 
     // Dodanie do bazy tablicy i ID użytkownika w której odpowiedziałem na 5 pytań,
     await dbHelper.updateStreak(currentUser.userID, dates);
+
+    // Usunięcie z bazy nieodpowiedzianych pytań przez użytkownika
+    await dbHelper.updateUnanswered(currentUser.userID, []);
   }
 };
 
@@ -121,21 +124,26 @@ const LaunchRequestHandler = {
   async handle(handlerInput) {
     currentUser.userID =
       handlerInput.requestEnvelope.context.System.user.userId;
-    console.log("User ID:", currentUser.userID, "[from file index.js]");
+    // console.log("User ID:", currentUser.userID, "[from file index.js]");
 
     try {
+      // Tutaj sprawdzę warunek. Jeśli w bazie, w kolumnie 'unansweredQuestions' istnieją pytania, to Alexa powie coś w stylu: 'Last time you did x/5 questions. Now, you have two options: resume a previous game, or choose a new game (easy, medium, hard or extreme)?'.
+
       // Pobranie danych z bazy w oparciu o użytkownika
       data = await dbHelper.getData(currentUser.userID);
-      console.log(data);
+      // console.log(data);
 
       //Jeśli nie ma uzytkownika w bazie to tworzy się nowy
       if (data === undefined) {
         // Dodanie nowego użytkownika do bazy danych
-        await dbHelper.addUser(currentUser.userID, []);
+        await dbHelper.addUser(currentUser.userID);
         data = await dbHelper.getData(currentUser.userID);
         console.log("User Data:", data);
         // A jeśli istnieje już użytkownik w bazie...
       } else {
+        // Jeśli użytkownik nie posiada kolumny o nazwie 'unansweredQuestions' to tworzy się ta kolumna z pustymi rekordami
+        if (!data.unansweredQuestions)
+          await dbHelper.updateUnanswered(currentUser.userID, []);
         console.log("User Data:", data);
       }
 
@@ -239,7 +247,7 @@ const GameLevelIntentHandler = {
       additionalTime = `${functions.audio.additionalTime(0)}`;
     } else if (currentUser.level === "medium") {
       allQuestions = equationsMedium.createQuestions();
-      console.log(allQuestions);
+      console.log("All Questions:", allQuestions);
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
 
@@ -270,7 +278,7 @@ const GameLevelIntentHandler = {
         functions.messages.levelNotUnderstood
       );
     }
-    console.log("Level:", currentUser.level);
+    console.log("Current Level:", currentUser.level);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -306,7 +314,7 @@ const ResultIntentHandler = {
     // Gdy odpowiedź użytkownika się zgadza
     if (Number(userResult) === currentQuestion.result) {
       speakOutput += ` ${functions.audio.correctAnswer} Correct! That will be ${currentQuestion.result}. `;
-      console.log(currentQuestion);
+      console.log("Current Question", currentQuestion);
       console.log("Count:", count);
       points++;
       count--;
@@ -324,7 +332,7 @@ const ResultIntentHandler = {
       await numberOfQuestions();
     }
 
-    console.log(speakOutput);
+    // console.log(speakOutput);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -446,7 +454,7 @@ const ReminderIntentHandler = {
       userInputMinute = userTimeInput[1];
     }
 
-    console.log("userTimeInput", userTimeInput);
+    // console.log("userTimeInput", userTimeInput);
 
     const reminderApiClient =
       handlerInput.serviceClientFactory.getReminderManagementServiceClient();
@@ -454,7 +462,7 @@ const ReminderIntentHandler = {
       // Ustawienie zmiennej dotyczącej wszystkich zezwoleń dla użytkownika
       const { permissions } = handlerInput.requestEnvelope.context.System.user;
 
-      console.log(permissions);
+      // console.log(permissions);
 
       // Jeśli użytkownik nie ma żadnych zezwoleń, wtedy alexa o tym powiadamia oraz wysyła prośbę w aplikacji
       if (!permissions) {
@@ -563,8 +571,29 @@ const SessionEndedRequestHandler = {
       "SessionEndedRequest"
     );
   },
-  handle(handlerInput) {
-    // Any cleanup logic goes here.
+  async handle(handlerInput) {
+    let unansweredQuestions = [];
+    // Wyświetlenie wszystkich działań w oparciu o 'count'
+
+    // PYTANIE: Czy pętla w jakiś sposób się wykona jeśli odpowiemy na wszystkie pytania?
+    // ODP: NIE
+
+    // Jeśli pytania są w ogóle zdefiniowane
+    if (allQuestions) {
+      for (let i = count; i >= 0; i--) {
+        // Jeśli w ogóle istnieją pytania
+        console.log("count w pętli", count);
+        console.log(`Unanswered question number ${count}`, allQuestions[count]);
+        // Dodanie do tablicy pytań na które nie została udzielona odpowiedź
+        unansweredQuestions.push(allQuestions[count]);
+
+        count--;
+      }
+    }
+
+    // Dodanie nieodpowiedzianych przez użytkownika pytań do bazy
+    await dbHelper.updateUnanswered(currentUser.userID, unansweredQuestions);
+
     reset();
     currentUser.userYesNo = null;
     // userReset();

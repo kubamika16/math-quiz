@@ -8,7 +8,12 @@ let dbHelper = function () {};
 let docClient = new AWS.DynamoDB.DocumentClient();
 
 // Funkcja pozwalająca na dodanie użytkownika do bazy, w oparciu o jego ID i o dzisiejszej dacie
-dbHelper.prototype.addUser = (userID, dates, reminders = "none") => {
+dbHelper.prototype.addUser = (
+  userID,
+  dates = [],
+  reminders = "none",
+  unansweredQuestions = []
+) => {
   return new Promise((resolve, reject) => {
     const params = {
       TableName: tableName,
@@ -16,6 +21,7 @@ dbHelper.prototype.addUser = (userID, dates, reminders = "none") => {
         userId: userID,
         runStreak: dates,
         reminders: reminders,
+        unansweredQuestions: unansweredQuestions,
       },
     };
     docClient.put(params, (err, data) => {
@@ -62,6 +68,33 @@ dbHelper.prototype.updateStreak = (userID, runStreak) => {
       UpdateExpression: "set runStreak = :runStreak",
       ExpressionAttributeValues: {
         ":runStreak": runStreak,
+      },
+      ReturnValues: "UPDATED_NEW",
+    };
+    docClient.update(params, (err, data) => {
+      if (err) {
+        console.log(
+          "Nie dało się zaaktualizować uzytkownika ------> ",
+          JSON.stringify(err)
+        );
+        return reject("Nie dało się zaaktualizować");
+      }
+      resolve(data);
+    });
+  });
+};
+
+// Aktualizacja nieodpowiedzianych pytań przez użytkownika
+dbHelper.prototype.updateUnanswered = (userID, unansweredQuestions) => {
+  return new Promise((resolve, reject) => {
+    const params = {
+      TableName: tableName,
+      Key: {
+        userId: userID,
+      },
+      UpdateExpression: "set unansweredQuestions = :unansweredQuestions",
+      ExpressionAttributeValues: {
+        ":unansweredQuestions": unansweredQuestions,
       },
       ReturnValues: "UPDATED_NEW",
     };
