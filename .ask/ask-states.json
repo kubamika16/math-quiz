@@ -1,0 +1,30 @@
+{
+  "askcliStatesVersion": "2020-03-31",
+  "profiles": {
+    "default": {
+      "skillInfrastructure": {
+        "@ask-cli/lambda-deployer": {
+          "deployState": {
+            "default": {
+              "lambda": {
+                "arn": "arn:aws:lambda:us-east-1:454044463163:function:ask-math-quiz-default-default-1643210906959",
+                "lastModified": "2022-05-31T05:55:19.000+0000",
+                "revisionId": "9cd8a7f2-c0d8-48dd-810d-2e1406c24869"
+              },
+              "iamRole": "arn:aws:iam::454044463163:role/ask-lambda-math-quiz-1643210894855"
+            }
+          }
+        }
+      },
+      "skillId": "amzn1.ask.skill.03171b24-1347-4d73-ae26-7b05a1c79180",
+      "skillMetadata": {
+        "lastDeployHash": "sz+rLp8KBsPx943q3hvbWSI8AfU="
+      },
+      "code": {
+        "default": {
+          "lastDeployHash": "uBSA4RcDIJwdiAm0MgFd67KaZDQ="
+        }
+      }
+    }
+  }
+}

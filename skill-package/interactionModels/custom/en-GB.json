@@ -1,0 +1,304 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "math quiz",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": [
+            "how to play",
+            "what is all that about",
+            "tell me something about this game",
+            "what is that about"
+          ]
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": [
+            "thanks alexa",
+            "enough for me",
+            "I'm good",
+            "thanks",
+            "enough",
+            "stop",
+            "cool"
+          ]
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "GameLevelIntent",
+          "slots": [
+            {
+              "name": "level",
+              "type": "gameLevel"
+            }
+          ],
+          "samples": [
+            "switch to {level}",
+            "now play {level}",
+            "I want to play {level} now",
+            "change to {level}",
+            "im going to make it {level} for you",
+            "i think ill be able to make it {level}",
+            "ill be able to choose {level}",
+            "im going to be {level}",
+            "can you {level} up the level",
+            "is it {level}",
+            "i can {level} easily",
+            "i think its going to be {level}",
+            "i think ill take it {level}",
+            "set difficulty to {level}",
+            "ill pick a {level} level",
+            "ill choose an {level} level",
+            "i think i will {level} level",
+            "i will get {level} level",
+            "{level} please",
+            "{level} level please",
+            "I think I will get {level} level",
+            "I will choose {level} level",
+            "{level}"
+          ]
+        },
+        {
+          "name": "ResultIntent",
+          "slots": [
+            {
+              "name": "result",
+              "type": "AMAZON.NUMBER"
+            }
+          ],
+          "samples": [
+            "{result} is my answer",
+            "i think it's {result}",
+            "it is {result}",
+            "result is {result}",
+            "i think the result is {result}",
+            "i am guessing that result will be {result}",
+            "{result} ",
+            "i think {result}",
+            "that will be {result}",
+            "the result is {result}"
+          ]
+        },
+        {
+          "name": "dontKnowIntent",
+          "slots": [],
+          "samples": [
+            "next question",
+            "next",
+            "what is the answer",
+            "answer",
+            "then tell me the answer",
+            "but i dont know this",
+            "can you give me the answer",
+            "show the answer",
+            "skip",
+            "will you show me your answers",
+            "can you tell me the answer",
+            "give the answer",
+            "get the answer",
+            "i do not know",
+            "can you show me the answer",
+            "i don't know that one",
+            "im not sure",
+            "I have no clue",
+            "too hard",
+            "No idea",
+            "tell me the answer",
+            "I don't know",
+            "I'm not sure"
+          ]
+        },
+        {
+          "name": "RepatQuestionIntent",
+          "slots": [],
+          "samples": [
+            "what are you saying",
+            "what are you talking about",
+            "can you say that",
+            "what did you just say",
+            "what did you just say to us again",
+            "can you repeat what you just said",
+            "i didn't hear anything about it",
+            "what was that",
+            "what do you say",
+            "what were you talking about",
+            "could you repeat what you said before",
+            "what were you saying",
+            "repeat",
+            "i didnt hear anything about it",
+            "can you repeat what you said before",
+            "can you say that again",
+            "what",
+            "could you repeat that",
+            "what did you say",
+            "i didn't hear that",
+            "could you repeat"
+          ]
+        },
+        {
+          "name": "noIntent",
+          "slots": [],
+          "samples": [
+            "definitely no",
+            "not",
+            "i don't want it",
+            "no thanks",
+            "no"
+          ]
+        },
+        {
+          "name": "ReminderIntent",
+          "slots": [
+            {
+              "name": "time",
+              "type": "AMAZON.TIME",
+              "samples": [
+                "maybe {time}",
+                "on {time}",
+                "in {time}",
+                "at {time}",
+                "{time}"
+              ]
+            }
+          ],
+          "samples": [
+            "{time} pm",
+            "{time} am",
+            "{time}",
+            "i need a reminder",
+            "can you set {time} please",
+            "will you set {time} for",
+            "yes i want a reminder",
+            "remind me at {time}",
+            "remnder at {time} P.M",
+            "reminder at {time} A.M",
+            "reminder on ",
+            "reminder at",
+            "yes I need a reminder",
+            "I want a reminder"
+          ]
+        },
+        {
+          "name": "AMAZON.StartOverIntent",
+          "samples": ["I want to start over", "I want to play again"]
+        },
+        {
+          "name": "ResumePreviousIntent",
+          "slots": [],
+          "samples": [
+            "i want to play the last game",
+            "start to play the previous one",
+            "begin to play the previous one",
+            "start the previous one",
+            "play the previous one",
+            "i want to play the previous game",
+            "go back to the last",
+            "go to the previous game",
+            "begin to play the previous game",
+            "can you start to play the previous one",
+            "continue the game",
+            "can you play the previous game",
+            "i want to continue",
+            "i want to keep playing",
+            "start the previous",
+            "i would like to the previous",
+            "tell me about the previous game",
+            "i want to continue playing the previous one",
+            "can you start playing the previous game",
+            "begin playing the previous one",
+            "i want to resume the previous",
+            "i want you to continue our activity please",
+            "resume the game please",
+            "get previous game",
+            "keep going",
+            "play the previous game",
+            "go back to the previous",
+            "previous one",
+            "i want to continue playing the previous",
+            "resume the game",
+            "previous game",
+            "can you continue",
+            "can i play previous game please",
+            "i want previous game to play",
+            "i would like to resume previous",
+            "resume",
+            "previous",
+            "resume previous",
+            "resume previous game"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "name": "gameLevel",
+          "values": [
+            {
+              "id": "4",
+              "name": {
+                "value": "extreme"
+              }
+            },
+            {
+              "id": "3",
+              "name": {
+                "value": "hard"
+              }
+            },
+            {
+              "id": "2",
+              "name": {
+                "value": "medium"
+              }
+            },
+            {
+              "id": "1",
+              "name": {
+                "value": "easy"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "dialog": {
+      "intents": [
+        {
+          "name": "ReminderIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "time",
+              "type": "AMAZON.TIME",
+              "confirmationRequired": false,
+              "elicitationRequired": true,
+              "prompts": {
+                "elicitation": "Elicit.Slot.526965240354.1073553066024"
+              }
+            }
+          ]
+        }
+      ],
+      "delegationStrategy": "ALWAYS"
+    },
+    "prompts": [
+      {
+        "id": "Elicit.Slot.526965240354.1073553066024",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "What time would you like to be reminded about?"
+          }
+        ]
+      }
+    ]
+  }
+}
