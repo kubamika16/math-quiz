@@ -32,7 +32,6 @@ const dbHelper = require("./helpers/dbHelper.js");
 const Adapter = require("ask-sdk-dynamodb-persistence-adapter");
 const dynamoDBTableName = "math-quiz-db";
 
-let points = 0;
 let count = 4;
 let allQuestions;
 let currentQuestion;
@@ -50,7 +49,10 @@ let currentUser = {
   level: undefined,
   // Gdy użytkownik odpowiada na jakieś pytanie tak/nie
   userYesNo: null,
+  points: 0,
 };
+
+let unanswered = { level: null, questions: [], scored: 0 };
 
 // Obiekt daty
 const callendarDate = {
@@ -68,11 +70,13 @@ const numberOfQuestions = async function () {
     speakOutput += `${functions.randomFromArray(
       functions.messages.nextQuestion
     )} ${currentQuestion.questionInWords}?`;
+    additionalTimeFunction(currentUser.level);
     speakOutput += ` ${additionalTime} `;
     repromptText = functions.audio.repromptClock;
     // Przypadek, gdy liczba pytań jest równa 0
   } else {
-    speakOutput += `Alright! You correctly answered ${points} out of 5 questions! `;
+    speakOutput += `Alright! You correctly answered ${currentUser.points} out of 5 questions! `;
+
     repromptText = "";
 
     // speakOutput += "I am proud.";
@@ -103,13 +107,38 @@ const numberOfQuestions = async function () {
     await dbHelper.updateStreak(currentUser.userID, dates);
 
     // Usunięcie z bazy nieodpowiedzianych pytań przez użytkownika
-    await dbHelper.updateUnanswered(currentUser.userID, []);
+    await dbHelper.updateUnanswered(currentUser.userID, {
+      level: null,
+      questions: [],
+      scored: 0,
+    });
   }
 };
 
 const reset = function () {
   points = 0;
   count = 4;
+};
+
+const unansweredReset = () => {
+  unanswered = { level: null, questions: [], scored: 0 };
+};
+
+const additionalTimeFunction = (level) => {
+  if (level === "medium")
+    additionalTime = `${functions.audio.additionalTime(3)} ${
+      functions.audio.answerTime
+    }`;
+
+  if (level === "hard")
+    additionalTime = `${functions.audio.additionalTime(6)} ${
+      functions.audio.answerTime
+    }`;
+
+  if (level === "extreme")
+    additionalTime = `${functions.audio.additionalTime(10)} ${
+      functions.audio.answerTime
+    }`;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -127,6 +156,9 @@ const LaunchRequestHandler = {
     // console.log("User ID:", currentUser.userID, "[from file index.js]");
 
     try {
+      // Zresetowanie nieodpowiedzianych odpowiedzi z poprzedniej sesji (?)
+      unansweredReset();
+
       // Tutaj sprawdzę warunek. Jeśli w bazie, w kolumnie 'unansweredQuestions' istnieją pytania, to Alexa powie coś w stylu: 'Last time you did x/5 questions. Now, you have two options: resume a previous game, or choose a new game (easy, medium, hard or extreme)?'.
 
       // Pobranie danych z bazy w oparciu o użytkownika
@@ -143,7 +175,11 @@ const LaunchRequestHandler = {
       } else {
         // Jeśli użytkownik nie posiada kolumny o nazwie 'unansweredQuestions' to tworzy się ta kolumna z pustymi rekordami
         if (!data.unansweredQuestions)
-          await dbHelper.updateUnanswered(currentUser.userID, []);
+          await dbHelper.updateUnanswered(currentUser.userID, {
+            level: null,
+            questions: [],
+            scored: 0,
+          });
         console.log("User Data:", data);
       }
 
@@ -182,18 +218,15 @@ const LaunchRequestHandler = {
         currentUser.runStreak
       );
 
-      // TO DO
-      // Tutaj będzie część logiczna funkcji wczytania pytań z poprzedniej gdy (jeśli w ogóle takie istnieją)
-
+      // Logiczna funkcji wczytania pytań z poprzedniej gdy (jeśli w ogóle takie istnieją)
       // Jeśli liczba 'unansweredQuestions' będzie większa od 0
-      // Wtedy Alexa powie: Last time you did x/5 questions. Now, you have two options: resume a previous game, or choose a new game (easy, medium, hard or extreme)?'. Trzeba jescze wspomnieć o 'run streak'.
-      // Dodać Intent i Handler 'ResumePrevious'. Handler w tekstach użytkownika będzie miał coś w stylu 'resume previous game', a w Handlerze będzie działać wywołanie pytań z bazy
-      if (data.unansweredQuestions.length > 0) {
+      if (data.unansweredQuestions.questions.length > 0) {
         speakOutput = `Welcome in the math quiz! ${
           currentUser.currentRunStreakText
         }. In your previous game you answered ${
-          5 - data.unansweredQuestions.length
-        } out of five questions. Now, you have two options: resume a previous game, or choose a new game (easy, medium, hard or extreme level?)`;
+          5 - data.unansweredQuestions.questions.length
+        }, out of five questions. Now, you have two options. Resume a previous game, or choose a new game (easy, medium, hard or extreme level)?`;
+        // Jeśli jednak w poprzedniej rozgrywce wszystkie pytania zostały odpowiedziane
       } else {
         // Zresetowanie poziomu użytkownika
         currentUser.level = undefined;
@@ -264,27 +297,30 @@ const GameLevelIntentHandler = {
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
 
-      additionalTime = `${functions.audio.additionalTime(3)} ${
-        functions.audio.answerTime
-      }`;
+      // additionalTime = `${functions.audio.additionalTime(3)} ${
+      //   functions.audio.answerTime
+      // }`;
+      additionalTimeFunction("medium");
       speakOutput += ` ${additionalTime}`;
     } else if (currentUser.level === "hard") {
       allQuestions = equationsHard.equations;
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
 
-      additionalTime = `${functions.audio.additionalTime(6)} ${
-        functions.audio.answerTime
-      }`;
+      // additionalTime = `${functions.audio.additionalTime(6)} ${
+      //   functions.audio.answerTime
+      // }`;
+      additionalTimeFunction("hard");
       speakOutput += ` ${additionalTime}`;
     } else if (currentUser.level === "extreme") {
       allQuestions = equationsExtreme.equations;
       currentQuestion = allQuestions[count];
       speakOutput += currentQuestion.questionInWords;
 
-      additionalTime = `${functions.audio.additionalTime(10)} ${
-        functions.audio.answerTime
-      }`;
+      // additionalTime = `${functions.audio.additionalTime(10)} ${
+      //   functions.audio.answerTime
+      // }`;
+      additionalTimeFunction("extreme");
       speakOutput += ` ${additionalTime}`;
     } else {
       speakOutput = functions.randomFromArray(
@@ -329,7 +365,8 @@ const ResultIntentHandler = {
       speakOutput += ` ${functions.audio.correctAnswer} Correct! That will be ${currentQuestion.result}. `;
       console.log("Current Question", currentQuestion);
       console.log("Count:", count);
-      points++;
+      currentUser.points++;
+      unanswered.scored++;
       count--;
       // Wywołanie funkcji która bierze pod uwagę dwa przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
       await numberOfQuestions();
@@ -560,6 +597,50 @@ const NoIntentHandler = {
   },
 };
 
+// Handler który uruchamia się gdy użytkownik chciałby wczytać poprzednią grę
+const ResumePreviousIntentHandler = {
+  canHandle(handlerInput) {
+    return (
+      Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+      Alexa.getIntentName(handlerInput.requestEnvelope) ===
+        "ResumePreviousIntent"
+    );
+  },
+  async handle(handlerInput) {
+    speakOutput = "";
+    // Pozostały 2 pytania:
+    // A: Alright. What is 10+10?
+    // U: 20
+    // A: Good. What is 20+20?
+    // U: 40
+    // A: Good. You correctly...
+
+    // Pobrać dane z bazy n.t. użytkownika
+    // Zapisać w zmiennej 'unansweredQuestions'
+    // Count = unansweredQuestions.length
+
+    // Klasyczne pobranie danych z bazy
+    const data = await dbHelper.getData(currentUser.userID);
+    // Ustawienie wszystkich pytań na tyle ile jest nieodpowiedzianych w bazie
+    allQuestions = data.unansweredQuestions.questions;
+    // Ustawienie liczby pytań na tyle ile jest w bazie (liczba powinna dochodzić do zera, dlatego jest '-1')
+    count = allQuestions.length - 1;
+    // Ustawienie poziomu z poprzedniej rozgrywki
+    currentUser.level = data.unansweredQuestions.level;
+    // Ustawienie liczby poprawnych odpowiedzi z poprzedniej rozgrywki
+    currentUser.points = data.unansweredQuestions.scored;
+    unanswered.scored = data.unansweredQuestions.scored;
+
+    // Wykorzystanie funkcji 'numberOfQuestions'
+    await numberOfQuestions();
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt(speakOutput)
+      .getResponse();
+  },
+};
+
 const CancelAndStopIntentHandler = {
   canHandle(handlerInput) {
     return (
@@ -585,27 +666,27 @@ const SessionEndedRequestHandler = {
     );
   },
   async handle(handlerInput) {
-    let unansweredQuestions = [];
-    // Wyświetlenie wszystkich działań w oparciu o 'count'
-
     // PYTANIE: Czy pętla w jakiś sposób się wykona jeśli odpowiemy na wszystkie pytania?
     // ODP: NIE
 
     // Jeśli pytania są w ogóle zdefiniowane
     if (allQuestions) {
+      // Dodanie do obiektu, na jakim poziomie grał użytkownik w poprzedniej rozgrywce
+      unanswered.level = currentUser.level;
+
+      // Wyświetlenie wszystkich działań w oparciu o 'count'
       for (let i = count; i >= 0; i--) {
-        // Jeśli w ogóle istnieją pytania
         console.log("count w pętli", count);
         console.log(`Unanswered question number ${count}`, allQuestions[count]);
         // Dodanie do tablicy pytań na które nie została udzielona odpowiedź
-        unansweredQuestions.push(allQuestions[count]);
+        unanswered.questions.push(allQuestions[count]);
 
         count--;
       }
     }
 
     // Dodanie nieodpowiedzianych przez użytkownika pytań do bazy
-    await dbHelper.updateUnanswered(currentUser.userID, unansweredQuestions);
+    await dbHelper.updateUnanswered(currentUser.userID, unanswered);
 
     reset();
     currentUser.userYesNo = null;
@@ -670,6 +751,7 @@ exports.handler = Alexa.SkillBuilders.custom()
     ReminderIntentHandler,
     NoIntentHandler,
     RepatQuestionIntentHandler,
+    ResumePreviousIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler,
     IntentReflectorHandler // make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers

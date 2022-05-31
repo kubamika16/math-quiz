@@ -12,7 +12,7 @@ dbHelper.prototype.addUser = (
   userID,
   dates = [],
   reminders = "none",
-  unansweredQuestions = []
+  unansweredQuestions = { level: null, questions: [], scored: 0 }
 ) => {
   return new Promise((resolve, reject) => {
     const params = {
