@@ -1,8 +1,3 @@
-// 5 sesji w Krakowie (27/05/2022)
-
-// Przydałoby się zrobić w odejmowaniu tak, żeby różnica pomiędzy dwoma liczbami była większa niż 5
-// Pracuje w pliku test.js i equationsMedium.js
-
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
 // 1. Add Multimodal Experience
 // 2. Add Reminders API - ZROBIONE
