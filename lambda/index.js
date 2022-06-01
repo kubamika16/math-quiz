@@ -6,8 +6,7 @@
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
 // 1. Add Multimodal Experience
 // 2. Add Reminders API - ZROBIONE
-// TO DO
-// 3. Add Feature to Save Progress
+// 3. Add Feature to Save Progress - ZROBIONE
 // 4. Include StartOver Intent - ZROBIONE
 // 5. End a main response with a question - ZROBIONE
 // 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill - ZROBIONE
