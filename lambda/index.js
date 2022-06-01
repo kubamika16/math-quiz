@@ -57,8 +57,9 @@ let unanswered = { level: null, questions: [], scored: 0 };
 // Obiekt daty
 const callendarDate = {
   today: functions.dateFunction(),
-  yesterday: functions.dateFunction(1),
+  yesterday: functions.getYesterdayDate(),
 };
+console.log("Today and Yesterday", callendarDate);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,11 +113,12 @@ const numberOfQuestions = async function () {
       questions: [],
       scored: 0,
     });
+    reset();
   }
 };
 
 const reset = function () {
-  points = 0;
+  currentUser.points = 0;
   count = 4;
 };
 
@@ -158,6 +160,7 @@ const LaunchRequestHandler = {
     try {
       // Zresetowanie nieodpowiedzianych odpowiedzi z poprzedniej sesji (?)
       unansweredReset();
+      reset();
 
       // Tutaj sprawdzę warunek. Jeśli w bazie, w kolumnie 'unansweredQuestions' istnieją pytania, to Alexa powie coś w stylu: 'Last time you did x/5 questions. Now, you have two options: resume a previous game, or choose a new game (easy, medium, hard or extreme)?'.
 

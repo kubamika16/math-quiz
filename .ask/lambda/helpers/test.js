@@ -1,24 +1,35 @@
-let count = 2;
-let level = "medium";
+const dateFunction = () => {
+  const date = {};
+  const newDate = new Date();
+  // miesiąc (od zera do 11 ale dodałem 1)
+  date.month = newDate.getMonth() + 1;
+  // Dzień (od 1 do 31)
+  date.day = newDate.getDate();
+  date.year = newDate.getFullYear();
+  return `${date.day}/${date.month}/${date.year}`;
 
-let unanswered = { level: null, questions: [] };
+  // // TESTY
+  // // miesiąc (od zera do 11 ale dodałem 1)
+  // date.month = 5;
+  // // Dzień (od 1 do 31)
+  // date.day = 18;
+  // date.year = 2022;
+  // return `${date.day - minusDays}/${date.month}/${date.year}`;
+};
 
-const allQuestions = [
-  { userResult: "38 + 87", questionInWords: "38 + 87", result: 125 },
-  { userResult: "8 * 15", questionInWords: "8 * 15", result: 120 },
-  { userResult: "3 * 32", questionInWords: "3 * 32", result: 96 },
-  { userResult: "8 * 13", questionInWords: "8 * 13", result: 104 },
-  {
-    userResult: "77 / 7",
-    questionInWords: "77 divided by 7",
-    result: 11,
-  },
-];
+const callendarDate = {
+  today: dateFunction(),
+  yesterday: getYesterdayDate(),
+};
 
-for (let i = count; i >= 0; i--) {
-  unanswered.questions.push(allQuestions[count]);
+console.log(callendarDate);
 
-  count--;
+function getYesterdayDate() {
+  const date = {};
+  const fullDate = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+  date.month = fullDate.getMonth() + 1;
+  date.day = fullDate.getDate();
+  date.year = fullDate.getFullYear();
+  return `${date.day}/${date.month}/${date.year}`;
 }
-
-console.log(unanswered.questions);
+console.log(getYesterdayDate());
