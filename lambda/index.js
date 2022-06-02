@@ -1,3 +1,5 @@
+// 4 sesje (2/06/2022)
+
 // My ID:
 // amzn1.ask.account.AGLNVAFCBGZQSIM3GLMMTNF3TF3NKVZBLVOQ4FKXRATXEHPPUD5BI72CSJZOGY7GIIJNDWPT6V6BEI2GQZROIF6I4XDYGWBCSVBWIC6EGEY6MNLDGLSYIWS737GMKV4ORARC4B32KKFFQ2CQYGBQUQHECIVPAAEB5W7HTHNETN6UO4SGSNKUOXQ7246E3KIM4VT37MVAZM5FPSI
 
@@ -13,6 +15,9 @@
 
 //Problemy na które jeszcze nie znalazłem rozwiązania:
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
+
+// TO DO
+// Przetestować 'don't know intent handler'
 
 const Alexa = require("ask-sdk-core");
 const moment = require("moment-timezone");
@@ -74,7 +79,6 @@ const numberOfQuestions = async function () {
     // Przypadek, gdy liczba pytań jest równa 0
   } else {
     speakOutput += `Alright! You correctly answered ${currentUser.points} out of 5 questions! `;
-
     repromptText = "";
 
     // speakOutput += "I am proud.";
@@ -88,6 +92,7 @@ const numberOfQuestions = async function () {
 
       // Ustawienie wartości 'reminder'. Pozwoli to na przekazanie tej zmiennej do switch/case, gdy użytkownik nie chce ustawiać powiadomień
       currentUser.userYesNo = "reminder";
+      repromptText = `If you agree for a reminder, say the time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`;
     }
 
     if (data.reminders === "off" || data.reminders === "on") {
@@ -105,11 +110,10 @@ const numberOfQuestions = async function () {
     await dbHelper.updateStreak(currentUser.userID, dates);
 
     // Usunięcie z bazy nieodpowiedzianych pytań przez użytkownika
-    await dbHelper.updateUnanswered(currentUser.userID, {
-      level: null,
-      questions: [],
-      scored: 0,
-    });
+    allQuestions = null;
+    unansweredReset();
+
+    await dbHelper.updateUnanswered(currentUser.userID, unanswered);
     reset();
   }
 };
@@ -156,6 +160,7 @@ const LaunchRequestHandler = {
 
     try {
       // Zresetowanie nieodpowiedzianych odpowiedzi z poprzedniej sesji (?)
+      allQuestions = null;
       unansweredReset();
       reset();
 
@@ -174,12 +179,11 @@ const LaunchRequestHandler = {
         // A jeśli istnieje już użytkownik w bazie...
       } else {
         // Jeśli użytkownik nie posiada kolumny o nazwie 'unansweredQuestions' to tworzy się ta kolumna z pustymi rekordami
-        if (!data.unansweredQuestions)
-          await dbHelper.updateUnanswered(currentUser.userID, {
-            level: null,
-            questions: [],
-            scored: 0,
-          });
+        if (!data.unansweredQuestions) {
+          unansweredReset();
+
+          await dbHelper.updateUnanswered(currentUser.userID, unanswered);
+        }
         console.log("User Data:", data);
       }
 
@@ -239,7 +243,7 @@ const LaunchRequestHandler = {
           `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
           `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
           `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
-          // `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
+          `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
         ])}`;
       }
     } catch (error) {
@@ -263,7 +267,7 @@ const GameLevelIntentHandler = {
       Alexa.getIntentName(handlerInput.requestEnvelope) === "GameLevelIntent"
     );
   },
-  handle(handlerInput) {
+  async handle(handlerInput) {
     speakOutput = "";
     currentUser.level =
       handlerInput.requestEnvelope.request.intent.slots.level.value;
@@ -281,7 +285,13 @@ const GameLevelIntentHandler = {
       speakOutput += `Because of that level, you will have extra 10 seconds. Alright! `;
     }
 
+    // Zresetowanie poprzedniej gry
+    allQuestions = null;
     reset();
+    unansweredReset();
+
+    await dbHelper.updateUnanswered(currentUser.userID, unanswered);
+
     // Utworzenie nowych pytań dla KAŻDEGO LEVELU
     functions.newEquations();
 
@@ -378,7 +388,7 @@ const ResultIntentHandler = {
         functions.messages.result
       )} ${currentQuestion.result}. `;
       count--;
-      // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
+      // Wywołanie funkcji która bierze pod uwagę dwa przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
       await numberOfQuestions();
     }
 
@@ -398,7 +408,7 @@ const dontKnowIntentHandler = {
       Alexa.getIntentName(handlerInput.requestEnvelope) === "dontKnowIntent"
     );
   },
-  handle(handlerInput) {
+  async handle(handlerInput) {
     //Jeśli poziom nie został wybrany, zwrócona zostanie od razu odpowiedź zeby wybrac level
     if (currentUser.level === undefined) {
       speakOutput = "Choose the level first: easy, medium or hard.";
@@ -409,18 +419,18 @@ const dontKnowIntentHandler = {
         .getResponse();
     }
 
-    speakOutput = "";
-    repromptText = "";
+    // speakOutput = "";
+    // repromptText = "";
 
-    speakOutput += `No worries. ${functions.randomFromArray(
+    speakOutput = `No worries. ${functions.randomFromArray(
       functions.messages.result
     )} ${currentQuestion.result}. `;
     count--;
-    numberOfQuestions();
+    await numberOfQuestions();
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
-      .reprompt(repromptText)
+      .reprompt(speakOutput)
       .getResponse();
   },
 };
@@ -470,12 +480,16 @@ const StartOverIntentHandler = {
         "AMAZON.StartOverIntent"
     );
   },
-  handle(handlerInput) {
+  async handle(handlerInput) {
     speakOutput = `Alright. Now that you want to restart the game, pick a level first: easy, medium, hard or extreme?`;
     repromptText = `Which level would you like to play?`;
 
+    allQuestions = null;
     reset();
+    unansweredReset();
     currentUser.level === undefined;
+
+    await dbHelper.updateUnanswered(currentUser.userID, unanswered);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -522,6 +536,7 @@ const ReminderIntentHandler = {
           .withAskForPermissionsConsentCard([
             "alexa::alerts:reminders:skill:readwrite",
           ])
+          .withShouldEndSession(true)
           .getResponse();
       } else {
         // Pobranie danych urządzenia użytkownika (jego czas lokalny)
@@ -535,6 +550,7 @@ const ReminderIntentHandler = {
 
         // speakOutput = `This is a developement stage of creating reminders.`;
         speakOutput = `You successfully scheduled a daily reminder.`;
+        repromptText = `Thanks for scheduling a reminder. Now, if you want to play again, choose a level. Easy, medium, hard or extreme.`;
 
         // Wywołanie przypomnienia
         await reminderApiClient.createReminder(
@@ -560,7 +576,7 @@ const ReminderIntentHandler = {
     // speakOutput = `Soon you will have a permission to create a daily reminder. For now, it is not possible. Choose the level then. Easy, medium, hard or extreme?`;
     return handlerInput.responseBuilder
       .speak(speakOutput)
-      .reprompt()
+      .reprompt(repromptText)
       .getResponse();
   },
 };
@@ -655,7 +671,10 @@ const CancelAndStopIntentHandler = {
     const speakOutput =
       // "Hope you had fun! If you can, leave a review. Good or bad, it should be honest. Honest answers will make this game much better. Goodbye!";
       "Thanks for playing. See you soon!";
-    return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .withShouldEndSession(true)
+      .getResponse();
   },
 };
 const SessionEndedRequestHandler = {
@@ -666,9 +685,6 @@ const SessionEndedRequestHandler = {
     );
   },
   async handle(handlerInput) {
-    // PYTANIE: Czy pętla w jakiś sposób się wykona jeśli odpowiemy na wszystkie pytania?
-    // ODP: NIE
-
     // Jeśli pytania są w ogóle zdefiniowane
     if (allQuestions) {
       // Dodanie do obiektu, na jakim poziomie grał użytkownik w poprzedniej rozgrywce
@@ -688,10 +704,9 @@ const SessionEndedRequestHandler = {
     // Dodanie nieodpowiedzianych przez użytkownika pytań do bazy
     await dbHelper.updateUnanswered(currentUser.userID, unanswered);
 
-    reset();
+    allQuestions = null;
     currentUser.userYesNo = null;
-    // userReset();
-    // functions.newEquations();
+    reset();
     return handlerInput.responseBuilder.getResponse();
   },
 };
@@ -713,6 +728,7 @@ const IntentReflectorHandler = {
     return (
       handlerInput.responseBuilder
         .speak(speakOutput)
+        .withShouldEndSession(true)
         //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
         .getResponse()
     );
