@@ -1,10 +1,13 @@
-// My ID:
-// amzn1.ask.account.AGLNVAFCBGZQSIM3GLMMTNF3TF3NKVZBLVOQ4FKXRATXEHPPUD5BI72CSJZOGY7GIIJNDWPT6V6BEI2GQZROIF6I4XDYGWBCSVBWIC6EGEY6MNLDGLSYIWS737GMKV4ORARC4B32KKFFQ2CQYGBQUQHECIVPAAEB5W7HTHNETN6UO4SGSNKUOXQ7246E3KIM4VT37MVAZM5FPSI
+// 5 sesji w Krakowie (27/05/2022)
+
+// Przydałoby się zrobić w odejmowaniu tak, żeby różnica pomiędzy dwoma liczbami była większa niż 5
+// Pracuje w pliku test.js i equationsMedium.js
 
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
 // 1. Add Multimodal Experience
 // 2. Add Reminders API - ZROBIONE
-// 3. Add Feature to Save Progress - ZROBIONE
+// TO DO
+// 3. Add Feature to Save Progress
 // 4. Include StartOver Intent - ZROBIONE
 // 5. End a main response with a question - ZROBIONE
 // 6. Improve the Natural Language Understanding (NLU) Accuracy of your skill - ZROBIONE
@@ -13,9 +16,6 @@
 
 //Problemy na które jeszcze nie znalazłem rozwiązania:
 //Gdy Alexa rozpocznie program, a uzytkownik powie 'dificult', zamiast 'hard', Alexa przejdzie od razu do odpowiedzi na pytanie matematyczne. Dodać do Handlera ResultIntentHandler funkcję if(level===undefined)...
-
-// TO DO
-// Przetestować 'don't know intent handler'
 
 const Alexa = require("ask-sdk-core");
 const moment = require("moment-timezone");
@@ -27,25 +27,22 @@ const equationsHard = require("./helpers/equationsHard");
 const equationsExtreme = require("./helpers/equationsExtreme");
 const reminderRequestHelper = require("./helpers/reminderRequestHelper.js");
 
-// Zmienne i biblioteki pozwalające na zapisanie danych w bazie
+// Zmienne pozwalające na zapisanie danych w bazie
 const dbHelper = require("./helpers/dbHelper.js");
 const Adapter = require("ask-sdk-dynamodb-persistence-adapter");
 const dynamoDBTableName = "math-quiz-db";
 
-const game = {
-  count: 4,
-  allQuestions: null,
-  currentQuestion: null,
-};
-
+let count = 4;
+let allQuestions;
+let currentQuestion;
 let additionalTime;
-
 let speakOutput = "";
 let repromptText = "";
 
+let data; //Dane pobierane z bazy danych
+
 // Dane o użykowniku zapisane w obiekcie
 let currentUser = {
-  data: null, //Dane pobierane z bazy danych o danym użytkowniku
   currentRunStreak: 0,
   currentRunStreakText: null,
   userID: null,
@@ -55,7 +52,6 @@ let currentUser = {
   points: 0,
 };
 
-// Obiekt dotyczący nieodpowiedzianych pytań przez użytkownika
 let unanswered = { level: null, questions: [], scored: 0 };
 
 // Obiekt daty
@@ -63,67 +59,67 @@ const callendarDate = {
   today: functions.dateFunction(),
   yesterday: functions.getYesterdayDate(),
 };
+console.log("Today and Yesterday", callendarDate);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FUNKCJE LOKALNE
 
 const numberOfQuestions = async function () {
-  if (game.count >= 0) {
-    game.currentQuestion = game.allQuestions[game.count];
+  if (count >= 0) {
+    currentQuestion = allQuestions[count];
     speakOutput += `${functions.randomFromArray(
       functions.messages.nextQuestion
-    )} ${game.currentQuestion.questionInWords}?`;
+    )} ${currentQuestion.questionInWords}?`;
     additionalTimeFunction(currentUser.level);
     speakOutput += ` ${additionalTime} `;
     repromptText = functions.audio.repromptClock;
     // Przypadek, gdy liczba pytań jest równa 0
   } else {
-    // Pobranie danych z bazy o danym ID użytkownika
-    currentUser.data = await dbHelper.getData(currentUser.userID);
-    const dbReminders = currentUser.data.reminders;
-    // Zapisanie danych z 'runStreak' w tablicy
-    const dbDates = currentUser.data.runStreak;
-
     speakOutput += `Alright! You correctly answered ${currentUser.points} out of 5 questions! `;
+
     repromptText = "";
 
+    // speakOutput += "I am proud.";
+
+    // Pobranie danych z bazy o danym ID użytkownika
+    const data = await dbHelper.getData(currentUser.userID);
+
     // Dodanie informacji na temat powiadomień, gdy w bazie, kolumny 'reminders' istnieje defaultowe 'none'
-    if (currentUser.data.reminders === "none") {
-      speakOutput += ` By the way, This game would be much easier when you play it every day for just two minutes. I can create a daily reminder for you. If you agree, say the specific time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`;
+    if (data.reminders === "none") {
+      speakOutput += `By the way, This game would be much easier when you play it every day for just two minutes. I can create a daily reminder for you. If you agree, say the specific time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`;
 
       // Ustawienie wartości 'reminder'. Pozwoli to na przekazanie tej zmiennej do switch/case, gdy użytkownik nie chce ustawiać powiadomień
       currentUser.userYesNo = "reminder";
-      repromptText = `If you agree for a reminder, say the time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`;
     }
 
-    if (dbReminders === "off" || dbReminders === "on") {
-      speakOutput += ` If you want to play again, choose a level: easy, medium, hard, or extreme? `;
+    if (data.reminders === "off" || data.reminders === "on") {
+      speakOutput += `If you want to play again, choose a level: easy, medium, hard, or extreme? `;
       repromptText = `Easy, medium, hard or extreme?`;
     }
 
-    // Warunek który dodaje dzisiejszą datę, jeśli nie znajduje się ona w tablicy 'dbDates'
-    if (!dbDates.includes(callendarDate.today))
-      dbDates.push(callendarDate.today);
-
-    // TO DO TO DO TO DO TO DO TO DO TO DO TO DO TO DO TO DO TO DO
-    // Destrukturyzacja kodu - jestem tutaj
+    // Zapisanie danych z 'runStreak' w tablicy
+    const dates = data.runStreak;
+    // Warunek który dodaje dzisiejszą datę, jeśli nie znajduje się ona w tablicy 'dates'
+    if (!dates.includes(callendarDate.today))
+      dates.push(functions.dateFunction());
 
     // Dodanie do bazy tablicy i ID użytkownika w której odpowiedziałem na 5 pytań,
-    await dbHelper.updateStreak(currentUser.userID, dbDates);
+    await dbHelper.updateStreak(currentUser.userID, dates);
 
     // Usunięcie z bazy nieodpowiedzianych pytań przez użytkownika
-    game.allQuestions = null;
-    unansweredReset();
-
-    await dbHelper.updateUnanswered(currentUser.userID, unanswered);
+    await dbHelper.updateUnanswered(currentUser.userID, {
+      level: null,
+      questions: [],
+      scored: 0,
+    });
     reset();
   }
 };
 
 const reset = function () {
   currentUser.points = 0;
-  game.count = 4;
+  count = 4;
 };
 
 const unansweredReset = () => {
@@ -163,37 +159,37 @@ const LaunchRequestHandler = {
 
     try {
       // Zresetowanie nieodpowiedzianych odpowiedzi z poprzedniej sesji (?)
-      game.allQuestions = null;
       unansweredReset();
       reset();
 
       // Tutaj sprawdzę warunek. Jeśli w bazie, w kolumnie 'unansweredQuestions' istnieją pytania, to Alexa powie coś w stylu: 'Last time you did x/5 questions. Now, you have two options: resume a previous game, or choose a new game (easy, medium, hard or extreme)?'.
 
       // Pobranie danych z bazy w oparciu o użytkownika
-      currentUser.data = await dbHelper.getData(currentUser.userID);
+      data = await dbHelper.getData(currentUser.userID);
       // console.log(data);
 
       //Jeśli nie ma uzytkownika w bazie to tworzy się nowy
-      if (currentUser.data === undefined) {
+      if (data === undefined) {
         // Dodanie nowego użytkownika do bazy danych
         await dbHelper.addUser(currentUser.userID);
-        currentUser.data = await dbHelper.getData(currentUser.userID);
-        console.log("User Data:", currentUser.data);
+        data = await dbHelper.getData(currentUser.userID);
+        console.log("User Data:", data);
         // A jeśli istnieje już użytkownik w bazie...
       } else {
         // Jeśli użytkownik nie posiada kolumny o nazwie 'unansweredQuestions' to tworzy się ta kolumna z pustymi rekordami
-        if (!currentUser.data.unansweredQuestions) {
-          unansweredReset();
-
-          await dbHelper.updateUnanswered(currentUser.userID, unanswered);
-        }
-        console.log("User Data:", currentUser.data);
+        if (!data.unansweredQuestions)
+          await dbHelper.updateUnanswered(currentUser.userID, {
+            level: null,
+            questions: [],
+            scored: 0,
+          });
+        console.log("User Data:", data);
       }
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // Początkowe ustawienie 'runStreak'
-      const dates = currentUser.data.runStreak;
+      const dates = data.runStreak;
       if (
         dates.includes(callendarDate.today) &&
         !dates.includes(callendarDate.yesterday)
@@ -227,11 +223,11 @@ const LaunchRequestHandler = {
 
       // Logiczna funkcji wczytania pytań z poprzedniej gdy (jeśli w ogóle takie istnieją)
       // Jeśli liczba 'unansweredQuestions' będzie większa od 0
-      if (currentUser.data.unansweredQuestions.questions.length > 0) {
+      if (data.unansweredQuestions.questions.length > 0) {
         speakOutput = `Welcome in the math quiz! ${
           currentUser.currentRunStreakText
         }. In your previous game you answered ${
-          5 - currentUser.data.unansweredQuestions.questions.length
+          5 - data.unansweredQuestions.questions.length
         }, out of five questions. Now, you have two options. Resume a previous game, or choose a new game (easy, medium, hard or extreme level)?`;
         // Jeśli jednak w poprzedniej rozgrywce wszystkie pytania zostały odpowiedziane
       } else {
@@ -270,7 +266,7 @@ const GameLevelIntentHandler = {
       Alexa.getIntentName(handlerInput.requestEnvelope) === "GameLevelIntent"
     );
   },
-  async handle(handlerInput) {
+  handle(handlerInput) {
     speakOutput = "";
     currentUser.level =
       handlerInput.requestEnvelope.request.intent.slots.level.value;
@@ -288,27 +284,21 @@ const GameLevelIntentHandler = {
       speakOutput += `Because of that level, you will have extra 10 seconds. Alright! `;
     }
 
-    // Zresetowanie poprzedniej gry
-    game.allQuestions = null;
     reset();
-    unansweredReset();
-
-    await dbHelper.updateUnanswered(currentUser.userID, unanswered);
-
     // Utworzenie nowych pytań dla KAŻDEGO LEVELU
     functions.newEquations();
 
     if (currentUser.level === "easy") {
-      game.allQuestions = equationsEasy.equations;
-      game.currentQuestion = game.allQuestions[game.count];
-      speakOutput += game.currentQuestion.questionInWords;
+      allQuestions = equationsEasy.equations;
+      currentQuestion = allQuestions[count];
+      speakOutput += currentQuestion.questionInWords;
 
       additionalTime = `${functions.audio.additionalTime(0)}`;
     } else if (currentUser.level === "medium") {
-      game.allQuestions = equationsMedium.createQuestions();
-      console.log("All Questions:", game.allQuestions);
-      game.currentQuestion = game.allQuestions[game.count];
-      speakOutput += game.currentQuestion.questionInWords;
+      allQuestions = equationsMedium.createQuestions();
+      console.log("All Questions:", allQuestions);
+      currentQuestion = allQuestions[count];
+      speakOutput += currentQuestion.questionInWords;
 
       // additionalTime = `${functions.audio.additionalTime(3)} ${
       //   functions.audio.answerTime
@@ -316,9 +306,9 @@ const GameLevelIntentHandler = {
       additionalTimeFunction("medium");
       speakOutput += ` ${additionalTime}`;
     } else if (currentUser.level === "hard") {
-      game.allQuestions = equationsHard.equations;
-      game.currentQuestion = game.allQuestions[game.count];
-      speakOutput += game.currentQuestion.questionInWords;
+      allQuestions = equationsHard.equations;
+      currentQuestion = allQuestions[count];
+      speakOutput += currentQuestion.questionInWords;
 
       // additionalTime = `${functions.audio.additionalTime(6)} ${
       //   functions.audio.answerTime
@@ -326,9 +316,9 @@ const GameLevelIntentHandler = {
       additionalTimeFunction("hard");
       speakOutput += ` ${additionalTime}`;
     } else if (currentUser.level === "extreme") {
-      game.allQuestions = equationsExtreme.equations;
-      game.currentQuestion = game.allQuestions[game.count];
-      speakOutput += game.currentQuestion.questionInWords;
+      allQuestions = equationsExtreme.equations;
+      currentQuestion = allQuestions[count];
+      speakOutput += currentQuestion.questionInWords;
 
       // additionalTime = `${functions.audio.additionalTime(10)} ${
       //   functions.audio.answerTime
@@ -371,17 +361,16 @@ const ResultIntentHandler = {
     repromptText = "";
 
     const userResult =
-      handlerInput.requestEnvelope.request.intent.slots.userResult.value;
-    console.log("Odpowiedź użytkownika:", userResult, typeof userResult);
+      handlerInput.requestEnvelope.request.intent.slots.result.value;
 
     // Gdy odpowiedź użytkownika się zgadza
-    if (Number(userResult) === game.currentQuestion.result) {
-      speakOutput += ` ${functions.audio.correctAnswer} Correct! That will be ${game.currentQuestion.result}. `;
-      console.log("Current Question", game.currentQuestion);
-      console.log("Count:", game.count);
+    if (Number(userResult) === currentQuestion.result) {
+      speakOutput += ` ${functions.audio.correctAnswer} Correct! That will be ${currentQuestion.result}. `;
+      console.log("Current Question", currentQuestion);
+      console.log("Count:", count);
       currentUser.points++;
       unanswered.scored++;
-      game.count--;
+      count--;
       // Wywołanie funkcji która bierze pod uwagę dwa przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
       await numberOfQuestions();
       // Gdy odpowiedź użytkownika się nie zgadza
@@ -390,9 +379,9 @@ const ResultIntentHandler = {
         functions.audio.incorrectAnswer
       } Unfortunately, ${functions.randomFromArray(
         functions.messages.result
-      )} ${game.currentQuestion.result}. `;
-      game.count--;
-      // Wywołanie funkcji która bierze pod uwagę dwa przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
+      )} ${currentQuestion.result}. `;
+      count--;
+      // Wywołanie funkcji która bierze pod uwagę dwaw przypadki ilości pytań (gdy ilość pytań jest większa lub równa 0, lub gdy ilość pytań jest mniejsza od 0)
       await numberOfQuestions();
     }
 
@@ -412,7 +401,7 @@ const dontKnowIntentHandler = {
       Alexa.getIntentName(handlerInput.requestEnvelope) === "dontKnowIntent"
     );
   },
-  async handle(handlerInput) {
+  handle(handlerInput) {
     //Jeśli poziom nie został wybrany, zwrócona zostanie od razu odpowiedź zeby wybrac level
     if (currentUser.level === undefined) {
       speakOutput = "Choose the level first: easy, medium or hard.";
@@ -423,18 +412,18 @@ const dontKnowIntentHandler = {
         .getResponse();
     }
 
-    // speakOutput = "";
-    // repromptText = "";
+    speakOutput = "";
+    repromptText = "";
 
-    speakOutput = `No worries. ${functions.randomFromArray(
+    speakOutput += `No worries. ${functions.randomFromArray(
       functions.messages.result
-    )} ${game.currentQuestion.result}. `;
-    game.count--;
-    await numberOfQuestions();
+    )} ${currentQuestion.result}. `;
+    count--;
+    numberOfQuestions();
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
-      .reprompt(speakOutput)
+      .reprompt(repromptText)
       .getResponse();
   },
 };
@@ -484,16 +473,12 @@ const StartOverIntentHandler = {
         "AMAZON.StartOverIntent"
     );
   },
-  async handle(handlerInput) {
+  handle(handlerInput) {
     speakOutput = `Alright. Now that you want to restart the game, pick a level first: easy, medium, hard or extreme?`;
     repromptText = `Which level would you like to play?`;
 
-    game.allQuestions = null;
     reset();
-    unansweredReset();
     currentUser.level === undefined;
-
-    await dbHelper.updateUnanswered(currentUser.userID, unanswered);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -540,7 +525,6 @@ const ReminderIntentHandler = {
           .withAskForPermissionsConsentCard([
             "alexa::alerts:reminders:skill:readwrite",
           ])
-          .withShouldEndSession(true)
           .getResponse();
       } else {
         // Pobranie danych urządzenia użytkownika (jego czas lokalny)
@@ -553,8 +537,7 @@ const ReminderIntentHandler = {
         const currentDateTime = moment().tz(userTimeZone);
 
         // speakOutput = `This is a developement stage of creating reminders.`;
-        speakOutput = `You successfully scheduled a daily reminder. Now, if you want to play again, choose a level. Easy, medium, hard or extreme.`;
-        repromptText = `Easy, medium, hard or extreme?`;
+        speakOutput = `You successfully scheduled a daily reminder.`;
 
         // Wywołanie przypomnienia
         await reminderApiClient.createReminder(
@@ -580,7 +563,7 @@ const ReminderIntentHandler = {
     // speakOutput = `Soon you will have a permission to create a daily reminder. For now, it is not possible. Choose the level then. Easy, medium, hard or extreme?`;
     return handlerInput.responseBuilder
       .speak(speakOutput)
-      .reprompt(repromptText)
+      .reprompt()
       .getResponse();
   },
 };
@@ -640,16 +623,16 @@ const ResumePreviousIntentHandler = {
     // Count = unansweredQuestions.length
 
     // Klasyczne pobranie danych z bazy
-    currentUser.data = await dbHelper.getData(currentUser.userID);
+    const data = await dbHelper.getData(currentUser.userID);
     // Ustawienie wszystkich pytań na tyle ile jest nieodpowiedzianych w bazie
-    game.allQuestions = currentUser.data.unansweredQuestions.questions;
+    allQuestions = data.unansweredQuestions.questions;
     // Ustawienie liczby pytań na tyle ile jest w bazie (liczba powinna dochodzić do zera, dlatego jest '-1')
-    game.count = game.allQuestions.length - 1;
+    count = allQuestions.length - 1;
     // Ustawienie poziomu z poprzedniej rozgrywki
-    currentUser.level = currentUser.data.unansweredQuestions.level;
+    currentUser.level = data.unansweredQuestions.level;
     // Ustawienie liczby poprawnych odpowiedzi z poprzedniej rozgrywki
-    currentUser.points = currentUser.data.unansweredQuestions.scored;
-    unanswered.scored = currentUser.data.unansweredQuestions.scored;
+    currentUser.points = data.unansweredQuestions.scored;
+    unanswered.scored = data.unansweredQuestions.scored;
 
     // Wykorzystanie funkcji 'numberOfQuestions'
     await numberOfQuestions();
@@ -675,10 +658,7 @@ const CancelAndStopIntentHandler = {
     const speakOutput =
       // "Hope you had fun! If you can, leave a review. Good or bad, it should be honest. Honest answers will make this game much better. Goodbye!";
       "Thanks for playing. See you soon!";
-    return handlerInput.responseBuilder
-      .speak(speakOutput)
-      .withShouldEndSession(true)
-      .getResponse();
+    return handlerInput.responseBuilder.speak(speakOutput).getResponse();
   },
 };
 const SessionEndedRequestHandler = {
@@ -689,31 +669,32 @@ const SessionEndedRequestHandler = {
     );
   },
   async handle(handlerInput) {
+    // PYTANIE: Czy pętla w jakiś sposób się wykona jeśli odpowiemy na wszystkie pytania?
+    // ODP: NIE
+
     // Jeśli pytania są w ogóle zdefiniowane
-    if (game.allQuestions) {
+    if (allQuestions) {
       // Dodanie do obiektu, na jakim poziomie grał użytkownik w poprzedniej rozgrywce
       unanswered.level = currentUser.level;
 
       // Wyświetlenie wszystkich działań w oparciu o 'count'
-      for (let i = game.count; i >= 0; i--) {
-        console.log("count w pętli", game.count);
-        console.log(
-          `Unanswered question number ${game.count}`,
-          game.allQuestions[game.count]
-        );
+      for (let i = count; i >= 0; i--) {
+        console.log("count w pętli", count);
+        console.log(`Unanswered question number ${count}`, allQuestions[count]);
         // Dodanie do tablicy pytań na które nie została udzielona odpowiedź
-        unanswered.questions.push(game.allQuestions[game.count]);
+        unanswered.questions.push(allQuestions[count]);
 
-        game.count--;
+        count--;
       }
     }
 
     // Dodanie nieodpowiedzianych przez użytkownika pytań do bazy
     await dbHelper.updateUnanswered(currentUser.userID, unanswered);
 
-    game.allQuestions = null;
-    currentUser.userYesNo = null;
     reset();
+    currentUser.userYesNo = null;
+    // userReset();
+    // functions.newEquations();
     return handlerInput.responseBuilder.getResponse();
   },
 };
@@ -735,7 +716,6 @@ const IntentReflectorHandler = {
     return (
       handlerInput.responseBuilder
         .speak(speakOutput)
-        .withShouldEndSession(true)
         //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
         .getResponse()
     );

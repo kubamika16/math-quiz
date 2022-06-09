@@ -70,21 +70,21 @@
           "name": "ResultIntent",
           "slots": [
             {
-              "name": "userResult",
+              "name": "result",
               "type": "AMAZON.NUMBER"
             }
           ],
           "samples": [
-            "is it {userResult}",
-            "{userResult}",
-            "i think it's {userResult}",
-            "it is {userResult}",
-            "result is {userResult}",
-            "i think the result is {userResult}",
-            "i am guessing that result will be {userResult}",
-            "i think {userResult}",
-            "that will be {userResult}",
-            "the result is {userResult}"
+            "{result} is my answer",
+            "i think it's {result}",
+            "it is {result}",
+            "result is {result}",
+            "i think the result is {result}",
+            "i am guessing that result will be {result}",
+            "{result} ",
+            "i think {result}",
+            "that will be {result}",
+            "the result is {result}"
           ]
         },
         {
@@ -170,10 +170,9 @@
             }
           ],
           "samples": [
-            "in {time}",
-            "at {time}",
             "{time} pm",
             "{time} am",
+            "{time}",
             "i need a reminder",
             "can you set {time} please",
             "will you set {time} for",
