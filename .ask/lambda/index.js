@@ -2,7 +2,13 @@
 // amzn1.ask.account.AGLNVAFCBGZQSIM3GLMMTNF3TF3NKVZBLVOQ4FKXRATXEHPPUD5BI72CSJZOGY7GIIJNDWPT6V6BEI2GQZROIF6I4XDYGWBCSVBWIC6EGEY6MNLDGLSYIWS737GMKV4ORARC4B32KKFFQ2CQYGBQUQHECIVPAAEB5W7HTHNETN6UO4SGSNKUOXQ7246E3KIM4VT37MVAZM5FPSI
 
 // Podpowiedzi od Alexa Skills Insights @ amazon.com
+// TO DO
 // 1. Add Multimodal Experience
+
+// Właśnie się za to zabieram
+// https://www.youtube.com/watch?v=VfMNAkhkCCY
+// https://stackoverflow.com/questions/54068857/dynamic-use-of-alexa-presentation-language
+
 // 2. Add Reminders API - ZROBIONE
 // 3. Add Feature to Save Progress - ZROBIONE
 // 4. Include StartOver Intent - ZROBIONE
@@ -243,13 +249,13 @@ const LaunchRequestHandler = {
 
         // Końcowa wypowiedź Alexy na powitanie
         speakOutput = `${functions.randomFromArray([
-          `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
-          `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
-          `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
-          `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
-          `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
-          `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
-          // `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
+          // `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
+          // `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
+          // `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
+          // `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
+          // `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
+          // `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
+          `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
         ])}`;
       }
     } catch (error) {
