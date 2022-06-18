@@ -555,6 +555,9 @@ const ReminderIntentHandler = {
           .withShouldEndSession(true)
           .getResponse();
       } else {
+        // Tutaj będzie część logiczna dotycząca przypomnienia
+        // Pytanie od Alexy: So you want to create a daily reminder
+
         // Pobranie danych urządzenia użytkownika (jego czas lokalny)
         const { deviceId } = handlerInput.requestEnvelope.context.System.device;
         const upsServiceClient =
