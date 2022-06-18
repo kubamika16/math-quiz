@@ -23,6 +23,8 @@
 // TO DO
 // Przetestować 'don't know intent handler'
 
+// <!-- 2 sesja w Readingu (18/06/2022) -->
+
 const Alexa = require("ask-sdk-core");
 const moment = require("moment-timezone");
 
@@ -522,6 +524,7 @@ const ReminderIntentHandler = {
   async handle(handlerInput) {
     let userTimeInput =
       handlerInput.requestEnvelope.request.intent.slots.time.value;
+    console.log("Godzina którą ustawia użytkownik", userTimeInput);
     let userInputHour;
     let userInputMinute;
 
@@ -557,6 +560,7 @@ const ReminderIntentHandler = {
         const upsServiceClient =
           handlerInput.serviceClientFactory.getUpsServiceClient();
         const userTimeZone = await upsServiceClient.getSystemTimeZone(deviceId);
+        console.log("User Time Zone", userTimeZone);
 
         // Ustawienie daty na datę lokalną użytkownika
         const currentDateTime = moment().tz(userTimeZone);

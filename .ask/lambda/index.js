@@ -23,6 +23,8 @@
 // TO DO
 // Przetestować 'don't know intent handler'
 
+// <!-- 2 sesja w Readingu (18/06/2022) -->
+
 const Alexa = require("ask-sdk-core");
 const moment = require("moment-timezone");
 
@@ -249,13 +251,13 @@ const LaunchRequestHandler = {
 
         // Końcowa wypowiedź Alexy na powitanie
         speakOutput = `${functions.randomFromArray([
-          // `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
-          // `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
-          // `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
-          // `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
-          // `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
-          // `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
-          `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
+          `Welcome in the math quiz! ${currentUser.currentRunStreakText}. To begin, say the level you want to start: easy, medium, hard, or extreme`,
+          `Hello! ${currentUser.currentRunStreakText}. I will ask you 5 math equations. Now, choose your level: easy, medium, hard, or extreme?`,
+          `Happy to see you! This is math quiz. ${currentUser.currentRunStreakText} To start, pick a level: easy, medium, hard, or extreme?`,
+          `How are you? ${currentUser.currentRunStreakText}. If you want to play this math quiz, pick a level: easy, medium, hard, or extreme?`,
+          `Dzien Dobry! You opened math quiz. ${currentUser.currentRunStreakText}. To start, choose a level: easy, medium, hard, or extreme`,
+          `Hello! ${currentUser.currentRunStreakText}. To start the game, pick the level: easy, medium, hard, extreme?`,
+          // `Hi! Today this game is being changed by adding new functions by our programmers. Sorry for all inconveniences. Easy, medium, hard or extreme level?`,
         ])}`;
       }
     } catch (error) {
@@ -522,6 +524,7 @@ const ReminderIntentHandler = {
   async handle(handlerInput) {
     let userTimeInput =
       handlerInput.requestEnvelope.request.intent.slots.time.value;
+    console.log("Godzina którą ustawia użytkownik", userTimeInput);
     let userInputHour;
     let userInputMinute;
 
@@ -557,6 +560,7 @@ const ReminderIntentHandler = {
         const upsServiceClient =
           handlerInput.serviceClientFactory.getUpsServiceClient();
         const userTimeZone = await upsServiceClient.getSystemTimeZone(deviceId);
+        console.log("User Time Zone", userTimeZone);
 
         // Ustawienie daty na datę lokalną użytkownika
         const currentDateTime = moment().tz(userTimeZone);
