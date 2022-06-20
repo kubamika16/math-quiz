@@ -8,8 +8,8 @@
             "default": {
               "lambda": {
                 "arn": "arn:aws:lambda:us-east-1:454044463163:function:ask-math-quiz-default-default-1643210906959",
-                "lastModified": "2022-06-18T11:07:31.000+0000",
-                "revisionId": "6cf98204-170a-400d-acb9-36e7b18dc34a"
+                "lastModified": "2022-06-18T17:45:10.000+0000",
+                "revisionId": "a1ff4727-1e3f-4c9f-bccd-ccebf2d48708"
               },
               "iamRole": "arn:aws:iam::454044463163:role/ask-lambda-math-quiz-1643210894855"
             }
@@ -18,11 +18,11 @@
       },
       "skillId": "amzn1.ask.skill.03171b24-1347-4d73-ae26-7b05a1c79180",
       "skillMetadata": {
-        "lastDeployHash": "CC7OFBRBFPahC3eJWiyrg6f+8tU="
+        "lastDeployHash": "QTbFeDbr1pjAjKtDca4yUOOzJTc="
       },
       "code": {
         "default": {
-          "lastDeployHash": "4sAcbFU3pSfnuWSWJxAAz2/S65o="
+          "lastDeployHash": "OdMnisGmgcz3jY0Dko4cUZx5dMk="
         }
       }
     }

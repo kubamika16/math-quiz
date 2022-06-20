@@ -23,7 +23,7 @@
 // TO DO
 // Przetestować 'don't know intent handler'
 
-// <!-- 2 sesja w Readingu (18/06/2022) -->
+// <!-- 5 sesji w Readingu (18/06/2022) -->
 
 const Alexa = require("ask-sdk-core");
 const moment = require("moment-timezone");
@@ -61,6 +61,9 @@ let currentUser = {
   // Gdy użytkownik odpowiada na jakieś pytanie tak/nie
   userYesNo: null,
   points: 0,
+  userTimeAmPm: null,
+  userInputHour: null,
+  userInputMinute: null,
 };
 
 // Obiekt dotyczący nieodpowiedzianych pytań przez użytkownika
@@ -522,22 +525,51 @@ const ReminderIntentHandler = {
     );
   },
   async handle(handlerInput) {
+    // Godzina którą wypowiada użytkownik
     let userTimeInput =
       handlerInput.requestEnvelope.request.intent.slots.time.value;
     console.log("Godzina którą ustawia użytkownik", userTimeInput);
-    let userInputHour;
-    let userInputMinute;
 
+    // Jeśli wybrana przez użytkownika godzina oddziela godziny i minuty dwukropkiem, to wtedy zostają one przedzielone i wrzucone do tablicy
     if (userTimeInput.includes(":")) {
       userTimeInput = userTimeInput.split(":");
-      userInputHour = userTimeInput[0];
-      userInputMinute = userTimeInput[1];
+      currentUser.userInputHour = userTimeInput[0];
+      currentUser.userInputMinute = userTimeInput[1];
+
+      // Jeśli nie ma minut w tej godzinie to zostają one usunięte
+      currentUser.userInputMinute =
+        currentUser.userInputMinute === "00" ||
+        currentUser.userInputMinute === "0"
+          ? ""
+          : currentUser.userInputMinute;
+
+      console.log(
+        "Wprowadzona godzina użytkownika i jej typ:",
+        currentUser.userInputHour,
+        typeof currentUser.userInputHour
+      );
+
+      // Jeśli godzina wypowiedziana to np. 20:00, to program zamienia ją na 8 pm.
+      if (Number(currentUser.userInputHour) > 12) {
+        currentUser.userTimeAmPm = `${Number(currentUser.userInputHour) - 12} ${
+          currentUser.userInputMinute
+        } pm`;
+      }
+      if (Number(currentUser.userInputHour) <= 12) {
+        currentUser.userTimeAmPm = `${Number(currentUser.userInputHour)} ${
+          currentUser.userInputMinute
+        } am`;
+      }
+      // Za to jeśli użtkownik zamiast godziny i minuty powie coś w stylu 'in the morning', to Alexa odpowie że tak nie można i poprosi żeby wybrać normalną godzinę zegarową
+    } else {
+      return handlerInput.responseBuilder
+        .speak(
+          "You need to tell me exact time for your daily reminder (for example, 8 am, or 5pm)."
+        )
+        .reprompt("What time would you like to be reminded about?")
+        .getResponse();
     }
 
-    // console.log("userTimeInput", userTimeInput);
-
-    const reminderApiClient =
-      handlerInput.serviceClientFactory.getReminderManagementServiceClient();
     try {
       // Ustawienie zmiennej dotyczącej wszystkich zezwoleń dla użytkownika
       const { permissions } = handlerInput.requestEnvelope.context.System.user;
@@ -554,36 +586,11 @@ const ReminderIntentHandler = {
           ])
           .withShouldEndSession(true)
           .getResponse();
+        // Jeśli użytkownik ustawił pozwolenie dotyczące przypomnień, wtedy Alexa może zadać pytanie dotyczące przypomnień.
       } else {
-        // Tutaj będzie część logiczna dotycząca przypomnienia
-        // Pytanie od Alexy: So you want to create a daily reminder
-
-        // Pobranie danych urządzenia użytkownika (jego czas lokalny)
-        const { deviceId } = handlerInput.requestEnvelope.context.System.device;
-        const upsServiceClient =
-          handlerInput.serviceClientFactory.getUpsServiceClient();
-        const userTimeZone = await upsServiceClient.getSystemTimeZone(deviceId);
-        console.log("User Time Zone", userTimeZone);
-
-        // Ustawienie daty na datę lokalną użytkownika
-        const currentDateTime = moment().tz(userTimeZone);
-
-        // speakOutput = `This is a developement stage of creating reminders.`;
-        speakOutput = `You successfully scheduled a daily reminder. Now, if you want to play again, choose a level. Easy, medium, hard or extreme.`;
-        repromptText = `Easy, medium, hard or extreme?`;
-
-        // Wywołanie przypomnienia
-        await reminderApiClient.createReminder(
-          reminderRequestHelper.settingReminderRequest(
-            currentDateTime,
-            userInputHour,
-            userInputMinute,
-            userTimeZone
-          )
-        );
-
-        // Aktualizacja w bazie dotycząca tego, że użytkownik pozwolił sobie na uruchomienie powiadomień
-        await dbHelper.updateReminders(currentUser.userID, "on");
+        speakOutput = `So you want to create a daily reminder at ${currentUser.userTimeAmPm}, is that correct?`;
+        // Ustawienie yesAnswer na ReminderConfirmation
+        currentUser.userYesNo = "ReminderConfirmation";
       }
     } catch (error) {
       console.log(`error message: ${error.message}`);
@@ -612,7 +619,7 @@ const NoIntentHandler = {
   async handle(handlerInput) {
     try {
       switch (currentUser.userYesNo) {
-        case "reminder":
+        case "ReminderConfirmation":
           speakOutput = `No worries. If you want to play again choose a level (easy, medium, hard or extreme), or say stop to exit.`;
           // Aktualizacja bazy w oparciu o to co powiedział użytkownik. Nie chce żeby dostawać powiadomienia, więc ta informacja zostaje dodana do bazy.
           await dbHelper.updateReminders(currentUser.userID, "off");
@@ -633,6 +640,68 @@ const NoIntentHandler = {
   },
 };
 
+// YESINTENT HANDLER
+const YesIntentHandler = {
+  canHandle(handlerInput) {
+    return (
+      Alexa.getRequestType(handlerInput.requestEnvelope) === "IntentRequest" &&
+      Alexa.getIntentName(handlerInput.requestEnvelope) === "AMAZON.YesIntent"
+    );
+  },
+  async handle(handlerInput) {
+    try {
+      // Switch dotyczący tego co powie użytkownik (yes, no). Tym razem userYesNo jest ustawione na 'reminder'
+      switch (currentUser.userYesNo) {
+        case "ReminderConfirmation":
+          speakOutput = ``;
+
+          const reminderApiClient =
+            handlerInput.serviceClientFactory.getReminderManagementServiceClient();
+
+          // Pobranie danych urządzenia użytkownika (jego czas lokalny)
+          const { deviceId } =
+            handlerInput.requestEnvelope.context.System.device;
+          const upsServiceClient =
+            handlerInput.serviceClientFactory.getUpsServiceClient();
+          const userTimeZone = await upsServiceClient.getSystemTimeZone(
+            deviceId
+          );
+          console.log("User Time Zone", userTimeZone);
+
+          // Ustawienie daty na datę lokalną użytkownika
+          const currentDateTime = moment().tz(userTimeZone);
+
+          speakOutput = `You successfully scheduled a daily reminder. Now, if you want to play again, choose a level. Easy, medium, hard or extreme.`;
+          repromptText = `Easy, medium, hard or extreme?`;
+
+          // Wywołanie przypomnienia
+          await reminderApiClient.createReminder(
+            reminderRequestHelper.settingReminderRequest(
+              currentDateTime,
+              currentUser.userInputHour,
+              currentUser.userInputMinute,
+              userTimeZone
+            )
+          );
+
+          // Aktualizacja bazy w oparciu o to co powiedział użytkownik. Nie chce żeby dostawać powiadomienia, więc ta informacja zostaje dodana do bazy.
+          await dbHelper.updateReminders(currentUser.userID, "on");
+          break;
+      }
+    } catch (error) {
+      console.log(`error message: ${error.message}`);
+      console.log(`error stack: ${error.stack}`);
+      console.log(`error status code: ${error.statusCode}`);
+      console.log(`error response: ${error.response}`);
+      speakOutput = `A launch request error occured.`;
+    }
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt()
+      .getResponse();
+  },
+};
 // Handler który uruchamia się gdy użytkownik chciałby wczytać poprzednią grę
 const ResumePreviousIntentHandler = {
   canHandle(handlerInput) {
@@ -789,6 +858,7 @@ exports.handler = Alexa.SkillBuilders.custom()
     StartOverIntentHandler,
     ReminderIntentHandler,
     NoIntentHandler,
+    YesIntentHandler,
     RepatQuestionIntentHandler,
     ResumePreviousIntentHandler,
     CancelAndStopIntentHandler,

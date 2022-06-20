@@ -235,6 +235,10 @@
             "resume previous",
             "resume previous game"
           ]
+        },
+        {
+          "name": "AMAZON.YesIntent",
+          "samples": ["lets go", "alright", "sure", "yes please"]
         }
       ],
       "types": [
