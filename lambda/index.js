@@ -23,8 +23,6 @@
 // TO DO
 // Przetestować 'don't know intent handler'
 
-// <!-- 5 sesji w Readingu (18/06/2022) -->
-
 const Alexa = require('ask-sdk-core')
 const moment = require('moment-timezone')
 
