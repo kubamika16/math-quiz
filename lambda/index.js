@@ -105,7 +105,8 @@ const numberOfQuestions = async function () {
       speakOutput += ` By the way, This game would be much easier when you play it every day for just two minutes. I can create a daily reminder for you. If you agree, say the specific time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`
 
       // Ustawienie wartości 'reminder'. Pozwoli to na przekazanie tej zmiennej do switch/case, gdy użytkownik nie chce ustawiać powiadomień
-      currentUser.userYesNo = 'reminder'
+      // currentUser.userYesNo = 'reminder'
+      currentUser.userYesNo = 'ReminderConfirmation'
       repromptText = `If you agree for a reminder, say the time for your daily reminder (for example: 8 a.m, or 5 p.m), otherwise say, no.`
     }
 
